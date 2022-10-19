@@ -1,0 +1,104 @@
+version: '3'
+
+volumes:
+  dbdata:
+
+
+networks:
+  node-network:
+    driver: bridge
+
+services:
+  core-api:
+    build: ./core-api
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URL=mongodb://mongodb:27017/node-boilerplate
+    ports:
+      - '3030:3030'
+    depends_on:
+      - mongodb
+      - eval-worker
+      - fs-ui
+    volumes:
+      - ./ftp-dir:/usr/src/node-app/ftp-dir
+      - ./core-api:/usr/src/node-app
+    container_name: core-api-dev
+    command: node src/index.js
+    networks:
+      - node-network
+
+  mongodb:
+    image: mongo:4.2.1-bionic
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - node-network
+
+  ftp-srv:
+    build: ./ftp-server
+    ports:
+      - '21:21'
+      - "20:20"
+    depends_on:
+      - core-api
+    volumes:
+      - ./ftp-dir:/usr/src/node-app/ftp-dir
+      - ./ftp-server:/usr/src/node-app
+    container_name: ftp-server
+    command: node index.js
+
+  fs-api:
+    build: ./fs-api
+    depends_on:
+      - ftp-srv
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./ftp-dir:/usr/src/node-app/ftp-dir
+      - ./fs-api:/usr/src/node-app
+    container_name: fs-api-dev
+    command: node src/index.js
+
+  fs-ui:
+    build: ./fs-ui
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./ftp-dir:/usr/src/node-app/ftp-dir
+      - ./fs-ui:/usr/src/node-app
+    container_name: fs-ui-dev
+    command: npm run serve
+
+  eval-worker:
+    container_name: eval-worker
+    env_file: ./eval-worker/.env
+    build: ./eval-worker
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./ftp-dir:/flask-api/ftp-dir
+      - ./eval-worker:/flask-api
+      # networks:
+      #   - db_network
+      # - web_network
+      #   nginx:
+      #     container_name: nginx
+      #     restart: always
+      #     image: "nginx:latest"
+      #     ports:
+      #       - "5000:5000"
+      #     volumes:
+      #       - ./nginx:/etc/nginx/conf.d
+      #     networks:
+      #       - web_network
+      #     depends_on: 
+      #       - eval-worker
+      # networks:
+      #   db_network:
+      #     driver: bridge
+      #   web_network:
+      #     driver: bridge
