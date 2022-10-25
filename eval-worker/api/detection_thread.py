@@ -2,6 +2,8 @@ import threading
 import json 
 import requests
 import os
+from os.path import exists
+
 
 execution_path = os.getcwd()
 
@@ -23,14 +25,22 @@ class ObjectDetectionThread(threading.Thread):
 
         path = os.path.join(execution_path , imagePath)
         newPath = os.path.join(execution_path , newFile)
-        print('Job started. ', imagePath)
+        print('Job started : ', imagePath, '  new: ', newPath)
         print('exec: ', path)
 
         tagDict = {}
 
+        file_exists = exists(path)
+        if  not file_exists:
+            print('Error file  does not  exist: ', path)
+            return
+
         try:
-            detections = self.detector.detectObjectsFromImage(input_image=path, output_image_path=newPath, minimum_percentage_probability=30)
-            
+            print('trying detector ', newPath)
+            # detections = self.detector.detectObjectsFromImage(input_image=os.path.join(execution_path , 'image2new.jpg'), output_image_path=os.path.join(execution_path , 'ftp-dir/detect.jpg'), minimum_percentage_probability=30)
+            detections = self.detector.detectObjectsFromImage(input_image = path, output_image_path = newPath, minimum_percentage_probability=30)
+            print('finished detector ', newPath)
+
             for eachObject in detections:
                 print(eachObject["name"] , " : ", eachObject["percentage_probability"], " : ", eachObject["box_points"] )
                 print("--------------------------------")
@@ -45,23 +55,20 @@ class ObjectDetectionThread(threading.Thread):
             x = requests.patch(url, json = {"status":"failed"}, verify=False, timeout=3)
             return 
 
-        print('tags: ',tagDict)
-        print("--------------------------------")
-
         postDict = {
-            "detection_path":newFile,
+            "detection_path": newFile,
             "tags": tagDict,
             "status": "complete"
         }
-
-        json_object = json.dumps(postDict) 
-        print(json_object)
+        
         print("--------------------------------")
         try:
             print('Sending job results back to core')
+            json_object = json.dumps(postDict) 
+            print(json_object,4)
             url = 'http://10.0.0.199:3030/v1/eval/'+self.evalId
             x = requests.patch(url, json = postDict, verify=False, timeout=3)
-            print(x.text)
+            print('Core api resp: ',x.text)
             print("--------------------------------")
         except:
             print("--------------------------------")

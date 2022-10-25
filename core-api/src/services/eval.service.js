@@ -4,6 +4,8 @@ const ApiError = require('../utils/ApiError');
 const axios = require('axios');
 
 const EVAL_API = `http://10.0.0.199:5000/`
+const FS_API = `http://10.0.0.199:3000/`
+
 
 /**
  * Create a eval
@@ -77,6 +79,30 @@ const updateEvalById = async (evalId, updateBody) => {
     // no need on keeping the record or files
     // create promise all for deleting both files
     // then delete records for detection and evaluations
+    // if (Object.keys(updateBody.tags).length == 0) {
+    //     console.log(`Zero tags found. Try deleting...`)
+
+    //     const orgImage = `${FS_API}${updateBody.path}`;
+    //     const detectImage = `${FS_API}${updateBody.detection_path}`;
+
+    //     try {
+    //         //  delete both assets
+    //         const response = await Promise.all([
+    //             axios.delete(orgImage),
+    //             axios.delete(detectImage)
+    //         ])
+    //         console.log(`Got Deleted asset  resp: `, response);
+
+    //         // delete deletion record
+    //         //  delete eval record
+    //     } catch (error) {
+    //         if (error.response) {
+    //             console.error('FS-API Eval-Service Response Error A: ', error.response.data.message);
+    //         } else {
+    //             console.error('FS-API Eval-Service Response Error B: ', error.code);
+    //         }
+    //     }
+    // }
 
     //TODO:
     // if tags exist get  watchable tags
@@ -87,7 +113,11 @@ const updateEvalById = async (evalId, updateBody) => {
     //   throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
     // }
     eval = Object.assign(eval, updateBody);
-    await eval.save();
+    eval.detection_path = eval.detection_path.replace('ftp-dir/', '')
+    eval = await eval.save();
+
+    console.log(`Saved eval: ${eval.id}`, eval)
+
     return eval;
 };
 

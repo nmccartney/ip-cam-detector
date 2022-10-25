@@ -19,7 +19,7 @@ services:
     depends_on:
       - mongodb
       - eval-worker
-      - fs-ui
+      # - fs-ui
     volumes:
       - ./ftp-dir:/usr/src/node-app/ftp-dir
       - ./core-api:/usr/src/node-app

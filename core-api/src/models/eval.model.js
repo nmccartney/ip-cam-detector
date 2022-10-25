@@ -37,6 +37,10 @@ const evalSchema = mongoose.Schema(
             //   },
             //   private: true, // used by the toJSON plugin
         },
+        detection_path: {
+            type: String,
+            trim: true,
+        },
         status: {
             type: String,
             required: true,
