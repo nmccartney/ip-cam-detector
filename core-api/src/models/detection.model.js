@@ -34,11 +34,7 @@ const detectionSchema = mongoose.Schema(
             type: String,
             required: true,
             trim: true,
-        },
-        evaluations: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Eval"
-        }],
+        },        
         evaluatedObjectPath: {
             type: String,
             trim: true,
@@ -55,6 +51,10 @@ const detectionSchema = mongoose.Schema(
             type: Object,
             trim: true,
         },
+        evaluations: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Eval"
+        }]
     },
     {
         timestamps: true,

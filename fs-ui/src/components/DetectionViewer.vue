@@ -5,7 +5,7 @@
         <!-- <keep-alive>
             <component :is="viewer" :path="path"></component>
         </keep-alive> -->
-        <span>{{page}}</span>
+        <span>{{ page }}</span>
         <!-- <ul>
             <li v-for="detection in detections" :key="detection.id">
                 {{detection}}
@@ -13,12 +13,56 @@
         </ul> -->
         <v-data-table :headers="detectionHeaders" :items="detections" :items-per-page="detectionLimit"
             class="elevation-1">
+
+            <template v-slot:item.evaluations="{ item }">
+                {{item.evaluations.length}}
+            </template>
+
+            <template v-slot:item.path="{ item }">
+
+                <v-dialog v-model="dialog[item.id]" fullscreen hide-overlay transition="dialog-bottom-transition">
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-btn icon v-bind="attrs" v-on="on">
+                            <v-icon>mdi-eye</v-icon>
+                        </v-btn>
+                        {{ item.path }}
+                        <!-- <v-btn color="secondary" x-small dark v-bind="attrs" v-on="on">
+                        show
+                    </v-btn> -->
+                    </template>
+                    <v-card>
+                        <v-toolbar dark color="primary">
+                            <v-btn icon dark @click="dialog[item.id] = false">
+                                <v-icon>mdi-close</v-icon>
+                            </v-btn>
+                            <v-toolbar-title>{{ item.path }}</v-toolbar-title>
+                            <v-spacer></v-spacer>
+                            <v-toolbar-items>
+                                <!-- <v-btn icon @click="runJob()">
+                                <v-icon>mdi-play</v-icon>
+                            </v-btn> -->
+                                <v-btn icon>
+                                    <v-icon>mdi-dots-vertical</v-icon>
+                                </v-btn>
+                            </v-toolbar-items>
+                        </v-toolbar>
+                        <v-card-text v-if="dialog[item.id]">
+                            <v-img :src="'http://10.0.0.199:3000/'+item.path" />
+                            <div v-for="(item, id) in item.evaluations" :key="id">
+                                <v-img :src="'http://10.0.0.199:3000/'+item.detection_path" />
+                            </div>
+                        </v-card-text>
+                    </v-card>
+                </v-dialog>
+
+            </template>
+
         </v-data-table>
 
         <v-pagination @input="getNewPageList" v-model="page" :length="length"></v-pagination>
         <!-- <component :is="viewer" :path="path"></component> -->
         <hr>
-        <span>{{evalPage}}</span>
+        <span>{{ evalPage }}</span>
         <!-- <ul>
             <li v-for="ev in evals" :key="ev.id">
                 {{ev.status}} {{ev.path}} {{ev.tags}}
@@ -63,6 +107,7 @@ export default {
         evalLength: 0,
         evalLimit: 10,
         detectionLimit: 10,
+        dialog:[],
         evalHeaders: [
             {
                 text: 'Status',

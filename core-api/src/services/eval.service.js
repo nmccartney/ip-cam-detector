@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const { Eval } = require('../models');
 const ApiError = require('../utils/ApiError');
 const axios = require('axios');
-
+const { detectionService } = require('../services');
 const EVAL_API = `http://10.0.0.199:5000/`
 const FS_API = `http://10.0.0.199:3000/`
 
@@ -47,7 +47,7 @@ const createEval = async (evalBody) => {
 * @returns {Promise<QueryResult>}
 */
 const queryEvals = async (filter, options) => {
-    const evals = await Eval.paginate(filter, options);
+    const evals = await Eval.paginate(filter, {...options,populate:'owner'});
     return evals;
 };
 
@@ -79,30 +79,32 @@ const updateEvalById = async (evalId, updateBody) => {
     // no need on keeping the record or files
     // create promise all for deleting both files
     // then delete records for detection and evaluations
-    // if (Object.keys(updateBody.tags).length == 0) {
-    //     console.log(`Zero tags found. Try deleting...`)
+    if (Object.keys(updateBody.tags).length == 0) {
+        console.log(`Zero tags found. Try deleting...`)
 
-    //     const orgImage = `${FS_API}${updateBody.path}`;
-    //     const detectImage = `${FS_API}${updateBody.detection_path}`;
+        const orgImage = `${FS_API}${updateBody.path}`;
+        const detectImage = `${FS_API}${updateBody.detection_path}`;
 
-    //     try {
-    //         //  delete both assets
-    //         const response = await Promise.all([
-    //             axios.delete(orgImage),
-    //             axios.delete(detectImage)
-    //         ])
-    //         console.log(`Got Deleted asset  resp: `, response);
+        try {
+            //  delete both assets
+            const response = await Promise.all([
+                axios.delete(orgImage),
+                axios.delete(detectImage)
+            ])
+            console.log(`Got Deleted asset  resp: `, response);
 
-    //         // delete deletion record
-    //         //  delete eval record
-    //     } catch (error) {
-    //         if (error.response) {
-    //             console.error('FS-API Eval-Service Response Error A: ', error.response.data.message);
-    //         } else {
-    //             console.error('FS-API Eval-Service Response Error B: ', error.code);
-    //         }
-    //     }
-    // }
+            // delete deletion record
+            await detectionService.deleteDetectionById(eval.detectionId)
+            //  delete eval record
+            await deleteEvalById(eval.id)
+        } catch (error) {
+            if (error.response) {
+                console.error('FS-API Eval-Service Response Error A: ', error.response.data.message);
+            } else {
+                console.error('FS-API Eval-Service Response Error B: ', error.code);
+            }
+        }
+    }
 
     //TODO:
     // if tags exist get  watchable tags

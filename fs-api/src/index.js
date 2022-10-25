@@ -54,10 +54,10 @@ function beforeRestFs(req, res, next) {
         res.end();
     }
 
-    if (req.method === 'DELETE') {
-        res.status(304);
-        res.end();
-    }
+    // if (req.method === 'DELETE') {
+    //     res.status(304);
+    //     res.end();
+    // }
 
     // keep executing the router middleware
     next()

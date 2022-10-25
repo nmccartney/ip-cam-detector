@@ -24,16 +24,19 @@ const createDetection = async (detectionBody) => {
         status: 'initialized',
         owner: detection._id
     }
+    
+    // start Eval on detection
     try {
         let eval = await Eval.createEval(evalBody)
+        // update detection with new eval
+        detection.evaluations = [eval.id]
+        await detection.save()
     } catch (err) {
         let error = Error(`Failed to initate evaluation job, ${err.message}`)
         console.error(`Core Detection: `, error)
+        return detection
     }
-    // start Eval on detection
 
-
-    //return the detection
     return detection
 };
 
@@ -48,6 +51,14 @@ const createDetection = async (detectionBody) => {
 */
 const queryDetections = async (filter, options) => {
     const detections = await Detection.paginate(filter, { ...options, populate: 'evaluations' });
+    // console.log(`populated? `,detections)
+    // let results = await detections.results.map(async detection=>{
+    //     let det = await Detection.findById(detection.id).populate('evaluations')
+    //     return det
+    // })
+    // results = await Promise.all(results)
+    // console.log(`results? `,results)
+
     return detections;
 };
 
