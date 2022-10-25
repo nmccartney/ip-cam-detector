@@ -30,8 +30,8 @@ const createEval = async (evalBody) => {
             console.error('Core Eval-Service Response Error A: ', error.response.data.message);
         } else {
             console.error('Core Eval-Service Response Error B: ', error.code);
-
         }
+        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to start eval');
     }
 
     return eval
@@ -47,7 +47,7 @@ const createEval = async (evalBody) => {
 * @returns {Promise<QueryResult>}
 */
 const queryEvals = async (filter, options) => {
-    const evals = await Eval.paginate(filter, {...options,populate:'owner'});
+    const evals = await Eval.paginate(filter, { ...options, populate: 'owner' });
     return evals;
 };
 
@@ -68,7 +68,7 @@ const getEvalById = async (id) => {
 * @returns {Promise<Eval>}
 */
 const updateEvalById = async (evalId, updateBody) => {
-    console.log(`Got eval update request ${evalId} `, updateBody)
+    console.log(`Got eval update request ${evalId} `)
     let eval = await getEvalById(evalId);
     if (!eval) {
         throw new ApiError(httpStatus.NOT_FOUND, 'Eval not found');
@@ -80,29 +80,16 @@ const updateEvalById = async (evalId, updateBody) => {
     // create promise all for deleting both files
     // then delete records for detection and evaluations
     if (Object.keys(updateBody.tags).length == 0) {
-        console.log(`Zero tags found. Try deleting...`)
-
-        const orgImage = `${FS_API}${updateBody.path}`;
-        const detectImage = `${FS_API}${updateBody.detection_path}`;
-
+        console.log(`Zero tags found. Try removing all records...`)
         try {
-            //  delete both assets
-            const response = await Promise.all([
-                axios.delete(orgImage),
-                axios.delete(detectImage)
-            ])
-            console.log(`Got Deleted asset  resp: `, response);
-
-            // delete deletion record
-            await detectionService.deleteDetectionById(eval.detectionId)
-            //  delete eval record
-            await deleteEvalById(eval.id)
+            await cleanupAssociations(eval.path, updateBody.detection_path)
         } catch (error) {
             if (error.response) {
                 console.error('FS-API Eval-Service Response Error A: ', error.response.data.message);
             } else {
                 console.error('FS-API Eval-Service Response Error B: ', error.code);
             }
+            throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found.');
         }
     }
 
@@ -110,6 +97,19 @@ const updateEvalById = async (evalId, updateBody) => {
     // if tags exist get  watchable tags
     // if watchable taks are not preset
     //  delete files and  records (see above todo)
+    if (!isWatchingForTags(updateBody.tags, [])) {
+        console.log(`No tags of any significance. Lets remove all records`)
+        try {
+            await cleanupAssociations(eval.path, updateBody.detection_path)
+        } catch (error) {
+            if (error.response) {
+                console.error('FS-API Eval-Service Response Error A: ', error.response.data.message);
+            } else {
+                console.error('FS-API Eval-Service Response Error B: ', error.code);
+            }
+            throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found in watch list.');
+        }
+    }
 
     // if (updateBody.email && (await Detection.isEmailTaken(updateBody.email, detectionId))) {
     //   throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
@@ -118,7 +118,7 @@ const updateEvalById = async (evalId, updateBody) => {
     eval.detection_path = eval.detection_path.replace('ftp-dir/', '')
     eval = await eval.save();
 
-    console.log(`Saved eval: ${eval.id}`, eval)
+    console.log(`Saved eval: ${eval.id}`)
 
     return eval;
 };
@@ -144,3 +144,40 @@ module.exports = {
     updateEvalById,
     deleteEvalById,
 };
+
+const isWatchingForTags = (tags, watchers) => {
+    let shouldKeep = false
+    let defaultWatchers = ['person', 'dog', 'cat', 'car', 'truck']
+    watchers = [...watchers, ...defaultWatchers]
+
+    tags = Object.keys(tags).filter(tag => {
+        let index = watchers.indexOf(tag)
+        return index > -1 ? true : false
+    })
+
+    console.log(`checking tags `, tags)
+
+    return tags.length > 0 ? true : false
+}
+
+const cleanupAssociations = async (originalImage, detectionImage) => {
+
+    originalImage = originalImage.replace('/ftp-dir/', '')
+    detectionImage = detectionImage.replace('/ftp-dir/', '')
+
+    const orgImage = `${FS_API}${originalImage}`;
+    const detectImage = `${FS_API}${detectionImage}`;
+
+    //  delete both assets
+    const response = await Promise.all([
+        axios.delete(orgImage),
+        axios.delete(detectImage)
+    ])
+    console.log(`Got Deleted asset  resp: `, response);
+
+    // delete deletion record
+    await detectionService.deleteDetectionById(eval.detectionId)
+    //  delete eval record
+    await deleteEvalById(eval.id)
+
+}

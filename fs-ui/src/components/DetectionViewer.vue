@@ -49,7 +49,7 @@
                         <v-card-text v-if="dialog[item.id]">
                             <v-img :src="'http://10.0.0.199:3000/'+item.path" />
                             <div v-for="(item, id) in item.evaluations" :key="id">
-                                <v-img :src="'http://10.0.0.199:3000/'+item.detection_path" />
+                                <v-img v-if="item.status=='complete'" :src="'http://10.0.0.199:3000/'+item.detection_path" />
                             </div>
                         </v-card-text>
                     </v-card>

@@ -24,7 +24,7 @@ const createDetection = async (detectionBody) => {
         status: 'initialized',
         owner: detection._id
     }
-    
+
     // start Eval on detection
     try {
         let eval = await Eval.createEval(evalBody)
@@ -50,14 +50,11 @@ const createDetection = async (detectionBody) => {
 * @returns {Promise<QueryResult>}
 */
 const queryDetections = async (filter, options) => {
-    const detections = await Detection.paginate(filter, { ...options, populate: 'evaluations' });
-    // console.log(`populated? `,detections)
-    // let results = await detections.results.map(async detection=>{
-    //     let det = await Detection.findById(detection.id).populate('evaluations')
-    //     return det
-    // })
-    // results = await Promise.all(results)
-    // console.log(`results? `,results)
+    const detections = await Detection.paginate(filter, {
+        sortBy: 'updatedAt:desc',
+        ...options,
+        populate: 'evaluations'
+    });
 
     return detections;
 };

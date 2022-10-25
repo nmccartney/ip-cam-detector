@@ -26,7 +26,7 @@ class ObjectDetectionThread(threading.Thread):
         path = os.path.join(execution_path , imagePath)
         newPath = os.path.join(execution_path , newFile)
         print('Job started : ', imagePath, '  new: ', newPath)
-        print('exec: ', path)
+        # print('exec: ', path)
 
         tagDict = {}
 
@@ -36,14 +36,14 @@ class ObjectDetectionThread(threading.Thread):
             return
 
         try:
-            print('trying detector ', newPath)
+            print('trying detector... ', newPath)
             # detections = self.detector.detectObjectsFromImage(input_image=os.path.join(execution_path , 'image2new.jpg'), output_image_path=os.path.join(execution_path , 'ftp-dir/detect.jpg'), minimum_percentage_probability=30)
             detections = self.detector.detectObjectsFromImage(input_image = path, output_image_path = newPath, minimum_percentage_probability=30)
-            print('finished detector ', newPath)
+            print('finished detector! ', newPath)
 
             for eachObject in detections:
-                print(eachObject["name"] , " : ", eachObject["percentage_probability"], " : ", eachObject["box_points"] )
-                print("--------------------------------")
+                # print(eachObject["name"] , " : ", eachObject["percentage_probability"], " : ", eachObject["box_points"] )
+                # print("--------------------------------")
                 tagDict[eachObject["name"]] = {"probability": eachObject["percentage_probability"],"boundries":eachObject["box_points"]}
         except Exception as e:
             print("--------------------------------")
@@ -61,8 +61,8 @@ class ObjectDetectionThread(threading.Thread):
             "status": "complete"
         }
         
-        print("--------------------------------")
         try:
+            print("--------------------------------")
             print('Sending job results back to core')
             json_object = json.dumps(postDict) 
             print(json_object,4)
@@ -70,7 +70,8 @@ class ObjectDetectionThread(threading.Thread):
             x = requests.patch(url, json = postDict, verify=False, timeout=3)
             print('Core api resp: ',x.text)
             print("--------------------------------")
-        except:
+        except Exception as err:
             print("--------------------------------")
             print("Failed to send update to eval service")
+            print(err)
             print("--------------------------------")
