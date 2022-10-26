@@ -3,7 +3,6 @@ version: '3'
 volumes:
   dbdata:
 
-
 networks:
   node-network:
     driver: bridge
@@ -44,6 +43,7 @@ services:
       - "20:20"
     depends_on:
       - core-api
+      - eval-worker
     volumes:
       - ./ftp-dir:/usr/src/node-app/ftp-dir
       - ./ftp-server:/usr/src/node-app
@@ -64,6 +64,9 @@ services:
 
   fs-ui:
     build: ./fs-ui
+    depends_on:
+      - core-api
+      - fs-api
     ports:
       - '8080:8080'
     volumes:

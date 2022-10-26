@@ -12,8 +12,11 @@ RUN apt-get update && apt-get install libgl1 libglib2.0-0 -y
 COPY requirements.txt .
 
 # install python dependencies
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --upgrade pip
+RUN pip3 install --root-user-action=ignore --no-cache-dir -r requirements.txt
+
+# RUN pip3 install imageai --upgrade
+
 
 ## ImageAi dependencies
 # RUN pip install tensorflow==2.4.0

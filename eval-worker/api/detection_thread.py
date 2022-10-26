@@ -74,6 +74,6 @@ class ObjectDetectionThread(threading.Thread):
             # print("------------------------------------")
         except Exception as err:
             print("-----------------------------------------")
-            print("--Failed to send update to eval service--")
+            print("--Failed to send update to core service--")
             print(err)
             print("-----------------------------------------")

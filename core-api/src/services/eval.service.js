@@ -85,33 +85,22 @@ const updateEvalById = async (evalId, updateBody) => {
     if (Object.keys(updateBody.tags).length == 0) {
         console.log(`Zero tags found. Try removing all records...`)
         try {
-            await cleanupAssociations(eval.path, updateBody.detection_path)
+            await cleanupAssociations(eval, updateBody.detection_path)
         } catch (error) {
-            if (error.response) {
-                console.error('FS-API Eval-Service Response Zero  Error A: ', error.response.data.message);
-            } else {
-                console.error('FS-API Eval-Service Response Zero Error B: ', error);
-            }
+            console.error('Clean up response Error: ', error);
+
             throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found.');
         }
-    }
-
-    //TODO:
-    // if tags exist get  watchable tags
-    // if watchable taks are not preset
-    //  delete files and  records (see above todo)
-    if (!isWatchingForTags(updateBody.tags, [])) {
+        return eval
+    }else if (!isWatchingForTags(updateBody.tags, [])) {
         console.log(`No tags of any significance. Lets remove all records`)
         try {
-            await cleanupAssociations(eval.path, updateBody.detection_path)
+            await cleanupAssociations(eval, updateBody.detection_path)
         } catch (error) {
-            if (error.response) {
-                console.error('FS-API Eval-Service Response Error A: ', error.response.data.message);
-            } else {
-                console.error('FS-API Eval-Service Response Error B: ', error);
-            }
+            console.error('Clean up Response Error B: ', error);
             throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found in watch list.', false, error);
         }
+        return eval
     }
 
     // if (updateBody.email && (await Detection.isEmailTaken(updateBody.email, detectionId))) {
@@ -156,32 +145,14 @@ const isWatchingForTags = (tags, watchers) => {
 }
 
 
+const cleanupAssociations = async (eval, detectionImage) => {
 
-module.exports = {
-    createEval,
-    queryEvals,
-    getEvalById,
-    updateEvalById,
-    deleteEvalById,
-};
-
-const { deleteDetectionById } = require('./detection.service');
-
-const cleanupAssociations = async (originalImage, detectionImage) => {
-
-    console.log(`trying to delet orig: `, originalImage)
-    console.log(`trying to delet det: `, detectionImage)
-
-    originalImage = originalImage.replace('/ftp-dir/', '')//.replace('/snap','snap')
+    // TODO: normalize these paths for each micro-service
+    let originalImage = eval.path.replace('/ftp-dir/', '')
     detectionImage = detectionImage.replace('ftp-dir', '')
 
-    // if (originalImage[0] === "/") {
-    //     originalImage = originalImage.substring(1)
-    // }
-
-    console.log(`trying to delet orig: `, originalImage)
+    console.log(`trying to delet orig: `, eval.path)
     console.log(`trying to delet det: `, detectionImage)
-
 
     const orgImage = `${FS_API}${originalImage}`;
     const detectImage = `${FS_API}${detectionImage}`;
@@ -192,7 +163,6 @@ const cleanupAssociations = async (originalImage, detectionImage) => {
     //     axios.delete(detectImage)
     // ])
     // console.log(`Got Deleted asset  resp: `, response);
-
 
     try {
         await axios.delete(orgImage)
@@ -209,16 +179,34 @@ const cleanupAssociations = async (originalImage, detectionImage) => {
         throw new Error('failed delete detect image')
     }
 
-    console.log(`Got Deleted asset  resp: `, detectionService);
-
     // delete deletion record
     // await deleteDetectionById(eval.detectionId)
-    let detection = await Detection.findById(id);
+    let detection = await Detection.findById(eval.detectionId);
     if (!detection) {
         throw new ApiError(httpStatus.NOT_FOUND, 'Detection not found');
     }
-    await detection.remove();
+
+    try{
+        await detection.remove();
+    }catch(err){
+        console.log(`Cleanup detection error: `,err)
+        throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up detection: ${eval.detectionId}`);
+    }
 
     //  delete eval record
-    await deleteEvalById(eval.id)
+    try{
+        await deleteEvalById(eval.id)
+    }catch(err){
+        console.log(`Cleanup eval error: `,err)
+        throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up eval: ${eval.detectionId}`);
+    }
 }
+
+
+module.exports = {
+    createEval,
+    queryEvals,
+    getEvalById,
+    updateEvalById,
+    deleteEvalById,
+};
