@@ -70,7 +70,7 @@ class Run(Resource):
     def get(self):
         imagePath = parser.parse_args()['image'][0]
         evalId = parser.parse_args()['eval'][0]
-        print('img:', imagePath)
+        # print('img:', imagePath)
 
         try:
             # create detection job

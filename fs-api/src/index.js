@@ -54,10 +54,11 @@ function beforeRestFs(req, res, next) {
         res.end();
     }
 
-    // if (req.method === 'DELETE') {
-    //     res.status(304);
-    //     res.end();
-    // }
+    if (req.method === 'DELETE') {
+        // res.status(304);
+        // res.end();
+        req.url = '/usr/src/node-app/ftp-dir' + req.url
+    }
 
     // keep executing the router middleware
     next()

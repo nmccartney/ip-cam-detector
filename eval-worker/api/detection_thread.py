@@ -36,10 +36,10 @@ class ObjectDetectionThread(threading.Thread):
             return
 
         try:
-            print('trying detector... ', newPath)
+            # print('trying detector... ', newPath)
             # detections = self.detector.detectObjectsFromImage(input_image=os.path.join(execution_path , 'image2new.jpg'), output_image_path=os.path.join(execution_path , 'ftp-dir/detect.jpg'), minimum_percentage_probability=30)
             detections = self.detector.detectObjectsFromImage(input_image = path, output_image_path = newPath, minimum_percentage_probability=30)
-            print('finished detector! ', newPath)
+            # print('finished detector! ', newPath)
 
             for eachObject in detections:
                 # print(eachObject["name"] , " : ", eachObject["percentage_probability"], " : ", eachObject["box_points"] )
@@ -62,16 +62,18 @@ class ObjectDetectionThread(threading.Thread):
         }
         
         try:
-            print("--------------------------------")
-            print('Sending job results back to core')
+            print("------------------------------------")
+            print('--Sending job results back to core--')
+            print("------------------------------------")
+
             json_object = json.dumps(postDict) 
-            print(json_object,4)
+            # print(json_object,4)
             url = 'http://10.0.0.199:3030/v1/eval/'+self.evalId
             x = requests.patch(url, json = postDict, verify=False, timeout=3)
-            print('Core api resp: ',x.text)
-            print("--------------------------------")
+            # print('Core api resp: ',x.text)
+            # print("------------------------------------")
         except Exception as err:
-            print("--------------------------------")
-            print("Failed to send update to eval service")
+            print("-----------------------------------------")
+            print("--Failed to send update to eval service--")
             print(err)
-            print("--------------------------------")
+            print("-----------------------------------------")

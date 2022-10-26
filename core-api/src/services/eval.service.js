@@ -1,11 +1,14 @@
 const httpStatus = require('http-status');
-const { Eval } = require('../models');
+const { Eval, Detection } = require('../models');
 const ApiError = require('../utils/ApiError');
 const axios = require('axios');
-const { detectionService } = require('../services');
-const EVAL_API = `http://10.0.0.199:5000/`
-const FS_API = `http://10.0.0.199:3000/`
+// const Detection = require('./detection.service');
+// const { detectionService } = require('./index');
+// const { Detection } = require('../models');
 
+
+const EVAL_API = `http://10.0.0.199:5000/`
+const FS_API = `http://10.0.0.199:3000`
 
 /**
  * Create a eval
@@ -23,7 +26,7 @@ const createEval = async (evalBody) => {
     const url = `${EVAL_API}run?image=ftp-dir${evalBody.path}&eval=${eval.id}`;
     try {
         const response = await axios.get(url);
-        console.log(`Got eval job: `, response.data);
+        console.log(`Got eval job: `, response.data.evalId);
         // could  update eval model  here or expect a new  request
     } catch (error) {
         if (error.response) {
@@ -85,9 +88,9 @@ const updateEvalById = async (evalId, updateBody) => {
             await cleanupAssociations(eval.path, updateBody.detection_path)
         } catch (error) {
             if (error.response) {
-                console.error('FS-API Eval-Service Response Error A: ', error.response.data.message);
+                console.error('FS-API Eval-Service Response Zero  Error A: ', error.response.data.message);
             } else {
-                console.error('FS-API Eval-Service Response Error B: ', error.code);
+                console.error('FS-API Eval-Service Response Zero Error B: ', error);
             }
             throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found.');
         }
@@ -105,9 +108,9 @@ const updateEvalById = async (evalId, updateBody) => {
             if (error.response) {
                 console.error('FS-API Eval-Service Response Error A: ', error.response.data.message);
             } else {
-                console.error('FS-API Eval-Service Response Error B: ', error.code);
+                console.error('FS-API Eval-Service Response Error B: ', error);
             }
-            throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found in watch list.');
+            throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found in watch list.', false, error);
         }
     }
 
@@ -137,14 +140,6 @@ const deleteEvalById = async (detectionId) => {
     return eval;
 };
 
-module.exports = {
-    createEval,
-    queryEvals,
-    getEvalById,
-    updateEvalById,
-    deleteEvalById,
-};
-
 const isWatchingForTags = (tags, watchers) => {
     let shouldKeep = false
     let defaultWatchers = ['person', 'dog', 'cat', 'car', 'truck']
@@ -160,24 +155,70 @@ const isWatchingForTags = (tags, watchers) => {
     return tags.length > 0 ? true : false
 }
 
+
+
+module.exports = {
+    createEval,
+    queryEvals,
+    getEvalById,
+    updateEvalById,
+    deleteEvalById,
+};
+
+const { deleteDetectionById } = require('./detection.service');
+
 const cleanupAssociations = async (originalImage, detectionImage) => {
 
-    originalImage = originalImage.replace('/ftp-dir/', '')
-    detectionImage = detectionImage.replace('/ftp-dir/', '')
+    console.log(`trying to delet orig: `, originalImage)
+    console.log(`trying to delet det: `, detectionImage)
+
+    originalImage = originalImage.replace('/ftp-dir/', '')//.replace('/snap','snap')
+    detectionImage = detectionImage.replace('ftp-dir', '')
+
+    // if (originalImage[0] === "/") {
+    //     originalImage = originalImage.substring(1)
+    // }
+
+    console.log(`trying to delet orig: `, originalImage)
+    console.log(`trying to delet det: `, detectionImage)
+
 
     const orgImage = `${FS_API}${originalImage}`;
     const detectImage = `${FS_API}${detectionImage}`;
 
     //  delete both assets
-    const response = await Promise.all([
-        axios.delete(orgImage),
-        axios.delete(detectImage)
-    ])
-    console.log(`Got Deleted asset  resp: `, response);
+    // const response = await Promise.all([
+    //     axios.delete(orgImage),
+    //     axios.delete(detectImage)
+    // ])
+    // console.log(`Got Deleted asset  resp: `, response);
+
+
+    try {
+        await axios.delete(orgImage)
+    } catch (err) {
+        console.log(`delete origin image ${orgImage}`, err)
+        throw new Error('failed delete orig image')
+
+    }
+
+    try {
+        await axios.delete(detectImage)
+    } catch (err) {
+        console.log(`delete detect image ${detectImage}`, err)
+        throw new Error('failed delete detect image')
+    }
+
+    console.log(`Got Deleted asset  resp: `, detectionService);
 
     // delete deletion record
-    await detectionService.deleteDetectionById(eval.detectionId)
+    // await deleteDetectionById(eval.detectionId)
+    let detection = await Detection.findById(id);
+    if (!detection) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Detection not found');
+    }
+    await detection.remove();
+
     //  delete eval record
     await deleteEvalById(eval.id)
-
 }

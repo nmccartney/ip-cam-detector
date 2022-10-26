@@ -80,7 +80,7 @@ const storeImage = async (fileName, path) => {
     const url = `http://10.0.0.199:3030/v1/detection/`;
     try {
         const response = await axios.post(url, postObj);
-        console.log('Added detection to core', response.data);
+        console.log('Added detection to core', response.data.id);
     } catch (error) {
         console.error(`Error! Cannot add detection to core: ${error.message}`);
     }
@@ -117,7 +117,7 @@ const removeLastAdded = async (dir) => {
         if (file.isFile()) {
             // check date
             let time = await fs.statSync(`${dir}/${file.name}`).mtime.getTime()
-            return {name:filePath,time}
+            return { name: filePath, time }
         }
     }).sort((a, b) => b.time - a.time) // or desc => b.time - a.time
     paths = await Promise.all(paths)
