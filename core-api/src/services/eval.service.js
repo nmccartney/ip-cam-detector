@@ -50,7 +50,7 @@ const createEval = async (evalBody) => {
 * @returns {Promise<QueryResult>}
 */
 const queryEvals = async (filter, options) => {
-    const evals = await Eval.paginate(filter, { ...options, populate: 'owner' });
+    const evals = await Eval.paginate(filter, { sortBy: 'updatedAt:desc', ...options, populate: 'owner' });
     return evals;
 };
 
@@ -92,7 +92,7 @@ const updateEvalById = async (evalId, updateBody) => {
             throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found.');
         }
         return eval
-    }else if (!isWatchingForTags(updateBody.tags, [])) {
+    } else if (!isWatchingForTags(updateBody.tags, [])) {
         console.log(`No tags of any significance. Lets remove all records`)
         try {
             await cleanupAssociations(eval, updateBody.detection_path)
@@ -186,18 +186,18 @@ const cleanupAssociations = async (eval, detectionImage) => {
         throw new ApiError(httpStatus.NOT_FOUND, 'Detection not found');
     }
 
-    try{
+    try {
         await detection.remove();
-    }catch(err){
-        console.log(`Cleanup detection error: `,err)
+    } catch (err) {
+        console.log(`Cleanup detection error: `, err)
         throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up detection: ${eval.detectionId}`);
     }
 
     //  delete eval record
-    try{
+    try {
         await deleteEvalById(eval.id)
-    }catch(err){
-        console.log(`Cleanup eval error: `,err)
+    } catch (err) {
+        console.log(`Cleanup eval error: `, err)
         throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up eval: ${eval.detectionId}`);
     }
 }

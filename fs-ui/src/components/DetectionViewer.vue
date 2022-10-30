@@ -5,7 +5,7 @@
         <!-- <keep-alive>
             <component :is="viewer" :path="path"></component>
         </keep-alive> -->
-        <span>{{ page }}</span>
+        <h3>Detections</h3>
         <!-- <ul>
             <li v-for="detection in detections" :key="detection.id">
                 {{detection}}
@@ -14,22 +14,16 @@
         <v-data-table :headers="detectionHeaders" :items="detections" :items-per-page="detectionLimit"
             class="elevation-1">
 
-            <template v-slot:item.evaluations="{ item }">
-                {{item.evaluations.length}}
-            </template>
-
-            <template v-slot:item.path="{ item }">
-
+            <template v-slot:item.fileName="{ item }">
                 <v-dialog v-model="dialog[item.id]" fullscreen hide-overlay transition="dialog-bottom-transition">
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn icon v-bind="attrs" v-on="on">
                             <v-icon>mdi-eye</v-icon>
+                            <!-- {{ item.fileName }} -->
                         </v-btn>
-                        {{ item.path }}
-                        <!-- <v-btn color="secondary" x-small dark v-bind="attrs" v-on="on">
-                        show
-                    </v-btn> -->
+                        {{ item.fileName }}
                     </template>
+
                     <v-card>
                         <v-toolbar dark color="primary">
                             <v-btn icon dark @click="dialog[item.id] = false">
@@ -47,36 +41,61 @@
                             </v-toolbar-items>
                         </v-toolbar>
                         <v-card-text v-if="dialog[item.id]">
-                            <v-img :src="'http://10.0.0.199:3000/'+item.path" />
-                            <div v-for="(item, id) in item.evaluations" :key="id">
-                                <v-img v-if="item.status=='complete'" :src="'http://10.0.0.199:3000/'+item.detection_path" />
-                            </div>
+                            <v-row>
+                                <v-col>
+
+                                    <div v-for="(ev, id) in item.evaluations" :key="id">
+                                        <div>
+                                            <v-chip v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1"
+                                                color="secondary">
+                                                {{ key }}
+                                                <!-- {{ tag }} -->
+                                            </v-chip>
+                                        </div>
+                                        <v-img v-if="ev.status == 'complete'"
+                                            :src="'http://10.0.0.199:3000/' + ev.detection_path" />
+                                    </div>
+                                </v-col>
+                                <v-col v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
+                                    <v-img :src="'http://10.0.0.199:3000/' + item.path" />
+                                </v-col>
+                            </v-row>
+
                         </v-card-text>
                     </v-card>
                 </v-dialog>
 
             </template>
 
+            <template v-slot:item.evaluations="{ item }">
+                {{ item.evaluations.length }}
+            </template>
+
+            <template v-slot:item.tags="{ item }">
+                <div v-for="(ev, id) in item.evaluations" :key="id">
+                    <div>
+                        <v-chip small v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1" color="secondary">
+                            {{ key }}
+                            <!-- {{ tag }} -->
+                        </v-chip>
+                    </div>
+                </div>
+            </template>
+
+            <template v-slot:item.path="{ item }">
+                {{ item.path }}
+            </template>
+
         </v-data-table>
 
         <v-pagination @input="getNewPageList" v-model="page" :length="length"></v-pagination>
         <!-- <component :is="viewer" :path="path"></component> -->
-        <hr>
-        <span>{{ evalPage }}</span>
-        <!-- <ul>
-            <li v-for="ev in evals" :key="ev.id">
-                {{ev.status}} {{ev.path}} {{ev.tags}}
-                <ul v-if="ev.tags">
-                    <li v-for="tag in Object.keys(ev.tags)" :tag="tag">
-                        {{ev.tags[tag]}}
-                    </li>
-                </ul>
-            </li>
-        </ul> -->
+
+        <!-- <h3>Evaluations</h3>
         <v-data-table :headers="evalHeaders" :items="evals" :items-per-page="evalLimit" class="elevation-1">
         </v-data-table>
 
-        <v-pagination @input="getNewEvalPageList" v-model="evalPage" :length="evalLength"></v-pagination>
+        <v-pagination @input="getNewEvalPageList" v-model="evalPage" :length="evalLength"></v-pagination> -->
     </div>
 
 </template>
@@ -107,7 +126,7 @@ export default {
         evalLength: 0,
         evalLimit: 10,
         detectionLimit: 10,
-        dialog:[],
+        dialog: [],
         evalHeaders: [
             {
                 text: 'Status',
@@ -119,16 +138,13 @@ export default {
             { text: 'Tags', value: 'tags' }
         ],
         detectionHeaders: [
-            {
-                text: 'Status',
-                align: 'start',
-                sortable: true,
-                value: 'status',
-            },
-            { text: 'File', value: 'fileName' },
+            { text: 'File', value: 'fileName', width: '420', align: 'start' },
+            { text: 'Status', value: 'status', },
             { text: 'Evaluations', value: 'evaluations' },
+            { text: 'Tags', value: 'tags' },
             { text: 'Path', value: 'path' }
-        ]
+        ],
+        detectionInterval: null
     }),
     async created() {
         // this.loading = true;
@@ -146,24 +162,42 @@ export default {
             })
             .catch(err => { throw err })
 
-        fetch(`http://10.0.0.199:3030/v1/eval`)
-            .then(res => res.json())
-            .then(res => {
-                this.loading = false;
-                // eslint-disable-next-line
-                console.log('eval res: ', res)
-                this.evals = res.results
-                this.evalPage = res.page
-                this.evalLength = res.totalPages
-                // this.assets = res.map(item => Object.assign({ path: item, name: item, children: [] }, {}))
-            })
-            .catch(err => { throw err })
+        // fetch(`http://10.0.0.199:3030/v1/eval`)
+        //     .then(res => res.json())
+        //     .then(res => {
+        //         this.loading = false;
+        //         // eslint-disable-next-line
+        //         console.log('eval res: ', res)
+        //         this.evals = res.results
+        //         this.evalPage = res.page
+        //         this.evalLength = res.totalPages
+        //         // this.assets = res.map(item => Object.assign({ path: item, name: item, children: [] }, {}))
+        //     })
+        //     .catch(err => { throw err })
+
+        if (this.detectionInterval) {
+            clearInterval(this.detectionInterval)
+            this.detectionInterval = null;
+        }
+        this.detectionInterval = setInterval(this.refresh, 2000)
+    },
+    beforeDestroy() {
+        if (this.detectionInterval) {
+            clearInterval(this.detectionInterval)
+            this.detectionInterval = null;
+        }
     },
     computed: {
     },
     methods: {
-        getNewPageList(val) {
-            fetch(`http://10.0.0.199:3030/v1/detection?page=${val}`)
+        async refresh() {
+            await this.getNewPageList(this.page)
+            // await this.getNewEvalPageList(this.evalPage)
+
+        },
+        async getNewPageList(val) {
+            let page = val || 0
+            await fetch(`http://10.0.0.199:3030/v1/detection?page=${page}`)
                 .then(res => res.json())
                 .then(res => {
                     this.loading = false;
@@ -176,8 +210,8 @@ export default {
                 })
                 .catch(err => { throw err })
         },
-        getNewEvalPageList(val) {
-            fetch(`http://10.0.0.199:3030/v1/eval?page=${val}`)
+        async getNewEvalPageList(val) {
+            await fetch(`http://10.0.0.199:3030/v1/eval?page=${val}`)
                 .then(res => res.json())
                 .then(res => {
                     this.loading = false;

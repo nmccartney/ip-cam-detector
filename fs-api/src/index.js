@@ -57,6 +57,7 @@ function beforeRestFs(req, res, next) {
     if (req.method === 'DELETE') {
         // res.status(304);
         // res.end();
+        res.status(200)
         req.url = '/usr/src/node-app/ftp-dir' + req.url
     }
 

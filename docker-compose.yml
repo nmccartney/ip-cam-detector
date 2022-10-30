@@ -23,7 +23,7 @@ services:
       - ./ftp-dir:/usr/src/node-app/ftp-dir
       - ./core-api:/usr/src/node-app
     container_name: core-api-dev
-    command: node src/index.js
+    command: npm run dev # node src/index.js
     networks:
       - node-network
 

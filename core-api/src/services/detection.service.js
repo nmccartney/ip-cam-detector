@@ -56,6 +56,9 @@ const queryDetections = async (filter, options) => {
         populate: 'evaluations'
     });
 
+    // console.log('--- ', detections.results)
+
+
     return detections;
 };
 
