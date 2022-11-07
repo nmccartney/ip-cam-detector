@@ -1,30 +1,35 @@
 <template>
     <li class="timeline-item" v-if="item">
         <div class="timeline-badge">
-            <v-icon>{{ item.icon_class }}"</v-icon>
+            <v-icon color="white">mdi-comment</v-icon>
         </div>
 
         <div class="timeline-panel">
             <div class="timeline-heading">
                 <h4 class="timeline-title">{{ item.title }}</h4>
-                <div class="timeline-panel-controls">
-                    <div class="controls">
-                        <!-- <a v-for="control in item.controls" is="timeline-control" :control="control">
-                            </a> -->
-                        <TimelineControls v-for="(control, id) in controls" :control="control" :key="id" />
-                    </div>
-                    <div class="timestamp">
-                        <small class="text-muted">{{ item.created }}</small>
-                    </div>
-                </div>
+
             </div>
             <div class="timeline-body" v-if="item.evaluations">
                 <!-- {{ item.body }} -->
                 <v-row>
                     <v-col :cols="3">
+                        <div class="timeline-panel-controls">
+                            <div class="timestamp">
+                                <small class="text-muted">
+                                    <!-- {{ item.created }} -->
+                                    24. Sep 17:03
+                                </small>
+                            </div>
+                            <div class="controls">
+                                <TimelineControls v-for="(control, id) in controls" :control="control" :key="id" />
+                            </div>
+                        </div>
+
+                        <v-divider></v-divider>
+
                         <div v-for="(ev, id) in item.evaluations" :key="id">
                             <div>
-                                <v-chip v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1" color="secondary">
+                                <v-chip small v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1" color="secondary">
                                     {{ key }}
                                     <!-- {{ tag }} -->
                                 </v-chip>

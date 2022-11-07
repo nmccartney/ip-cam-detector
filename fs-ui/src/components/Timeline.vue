@@ -1,6 +1,6 @@
 <template>
     <div class="timeline-wrapper">
-        <h2>Timeline</h2>
+        <!-- <h2>Timeline</h2> -->
 
 
         <div id="timeline-template">
@@ -103,7 +103,7 @@ export default {
                     this.loading = false;
                     // eslint-disable-next-line
                     console.log('res: ', res)
-                    this.detections = res.results
+                    this.items = res.results
                     this.page = res.page
                     this.length = res.totalPages
                     // this.assets = res.map(item => Object.assign({ path: item, name: item, children: [] }, {}))
@@ -122,6 +122,7 @@ export default {
 // }
 .timeline-wrapper {
     max-width: 860px;
+    margin: 0 auto;
 }
 
 #timeline-header {
