@@ -1,19 +1,22 @@
 <template id="timeline-control-template">
-    <a href="#" @click="handleClick">
+    <v-btn icon @click="handleClick">
         <v-icon>{{ control.icon_class }}</v-icon>
-    </a>
+    </v-btn>
 </template>
 
 <script>
 export default {
     name: "TimelineItem",
     props: {
-        control: {}
+        control: {},
+        item: {}
     },
     data: () => ({
     }),
     methods: {
-        handleClick() { }
+        async handleClick() {
+            await this.control.func(this.item.id)
+        }
     }
 };
 </script>

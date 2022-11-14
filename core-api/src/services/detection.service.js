@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const { Detection } = require('../models');
 const Eval = require('./eval.service');
 const ApiError = require('../utils/ApiError');
-
+const axios = require('axios');
 
 /**
  * Create a detection
@@ -101,9 +101,37 @@ const deleteDetectionById = async (detectionId) => {
     if (!detection) {
         throw new ApiError(httpStatus.NOT_FOUND, 'Detection not found');
     }
+
     await detection.remove();
     return detection;
 };
+
+
+const cleanUpByPath = async (detectionPath) => {
+
+    // let detection = Detection.findById(id).populate('evaluations');
+    let detection = Detection.findOne({ path: detectionPath }).populate('evaluations');
+
+    //  delete eval record
+    evals = detection.evaluations.map(eval => {
+        return Eval.deleteEvalById(eval.id)
+    });
+
+    try {
+        await Promise.all(evals)
+    } catch (err) {
+        console.log(`Cleanup detectionevals  error: `, err)
+        throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up detection: ${detectionId}`);
+    }
+
+    try {
+        // await detection.remove();
+        await deleteDetectionById(detectionId)
+    } catch (err) {
+        console.log(`Cleanup detection error: `, err)
+        throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up detection: ${eval.detectionId}`);
+    }
+}
 
 module.exports = {
     createDetection,

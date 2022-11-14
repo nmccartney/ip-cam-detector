@@ -21,7 +21,8 @@
                                 </small>
                             </div>
                             <div class="controls">
-                                <TimelineControls v-for="(control, id) in controls" :control="control" :key="id" />
+                                <TimelineControls :item="item" v-for="(control, id) in controls" :control="control"
+                                    :key="id" />
                             </div>
                         </div>
 
@@ -57,7 +58,7 @@
   
 <script>
 import TimelineControls from './TimelineControls';
-
+import axios from 'axios';
 
 export default {
     name: "TimelineItem",
@@ -69,13 +70,27 @@ export default {
     },
     data: () => ({
         controls: [
-            {
-                method: 'edit',
-                icon_class: 'mdi-pencil'
-            },
+            // {
+            //     method: 'edit',
+            //     icon_class: 'mdi-pencil',
+            //     func: () => { }
+            // },
             {
                 method: 'delete',
-                icon_class: 'mdi-trash'
+                icon_class: 'mdi-delete',
+                func: async (id) => {
+                    // eslint-disable-next-line
+                    console.log(`delete ${id}`);
+
+                    try {
+                        const response = await axios.delete(`http://10.0.0.199:3030/v1/detection/${id}`);
+                        // eslint-disable-next-line
+                        console.log('Deleted detection to core', response.data);
+                    } catch (error) {
+                        // eslint-disable-next-line
+                        console.error(`Error! Cannot add detection to core: ${error.message}`);
+                    }
+                }
             }
         ],
     }),

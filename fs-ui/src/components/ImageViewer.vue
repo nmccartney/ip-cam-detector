@@ -2,10 +2,10 @@
     <div style="padding:5px 0px 5px 20px;">
         <v-toolbar dense flat>
 
-            <v-icon class="mr-2" @click="()=>{open=true}">
+            <v-icon class="mr-2" @click="() => { open = true }">
                 mdi-image
             </v-icon>
-            <v-toolbar-title>{{imgLabel}}</v-toolbar-title>
+            <v-toolbar-title>{{ imgLabel }}</v-toolbar-title>
 
             <v-spacer></v-spacer>
 
@@ -23,7 +23,7 @@
                         <v-btn icon dark @click="open = false">
                             <v-icon>mdi-close</v-icon>
                         </v-btn>
-                        <v-toolbar-title>{{imgLabel}}</v-toolbar-title>
+                        <v-toolbar-title>{{ imgLabel }}</v-toolbar-title>
                         <v-spacer></v-spacer>
                         <v-toolbar-items>
                             <v-btn icon @click="runJob()">
@@ -74,7 +74,7 @@ export default {
     created() {
     },
     methods: {
-        runJob (){
+        runJob() {
             // eslint-disable-next-line
             console.log('path: ', this.path)
             fetch(`http://10.0.0.199:5000/run?image=ftp-dir/${this.path}`)
@@ -84,9 +84,10 @@ export default {
                     // eslint-disable-next-line
                     console.log('Requesting new job confirmed. Resp: ', res)
                 })
-                .catch(err => { 
+                .catch(err => {
+                    // eslint-disable-next-line
                     console.log(`Requesting new job failed. Error:`, err)
-                 })
+                })
         }
     }
 };

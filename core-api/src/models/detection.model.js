@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 // const validator = require('validator');
+const Eval = require('./eval.model');
 const { toJSON, paginate } = require('./plugins');
+const axios = require('axios');
 
 const detectionSchema = mongoose.Schema(
     {
@@ -13,28 +15,17 @@ const detectionSchema = mongoose.Schema(
             type: String,
             trim: true,
             lowercase: true,
-            //   validate(value) {
-            //     if (!validator.isEmail(value)) {
-            //       throw new Error('Invalid email');
-            //     }
-            //   },
         },
         path: {
             type: String,
             required: true,
             trim: true,
-            //   validate(value) {
-            //     if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
-            //       throw new Error('Password must contain at least one letter and one number');
-            //     }
-            //   },
-            //   private: true, // used by the toJSON plugin
         },
         status: {
             type: String,
             required: true,
             trim: true,
-        },        
+        },
         evaluatedObjectPath: {
             type: String,
             trim: true,
@@ -71,19 +62,34 @@ detectionSchema.plugin(paginate);
  * @param {ObjectId} [excludeUserId] - The id of the user to be excluded
  * @returns {Promise<boolean>}
  */
- detectionSchema.statics.isPathTaken = async function (path, excludeUserId) {
+detectionSchema.statics.isPathTaken = async function (path, excludeUserId) {
     const detection = await this.findOne({ path, _id: { $ne: excludeUserId } });
     return !!detection;
 };
 
+const FS_API = `http://10.0.0.199:3000`
 
-// userSchema.pre('save', async function (next) {
-//     const user = this;
-//     if (user.isModified('password')) {
-//         user.password = await bcrypt.hash(user.password, 8);
-//     }
-//     next();
-// });
+detectionSchema.pre('remove', async function (next) {
+    const detection = this;
+
+    try {
+        await Eval.deleteMany({ detectionId: detection.id })
+    } catch (err) {
+        console.log(`Clean Up Error: delete evaluations ${detection.id}`, err)
+    }
+
+    if (detection.path) {
+        let originalImage = detection.path.replace('/ftp-dir/', '')
+        originalImage = `${FS_API}${originalImage}`
+        try {
+            await axios.delete(originalImage)
+        } catch (err) {
+            console.log(`Clean Up Error: delete detection image ${originalImage}`, err.data)
+            return next(err);
+        }
+    }
+    next();
+});
 
 /**
  * @typedef Detection

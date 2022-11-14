@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 // const validator = require('validator');
 const { toJSON, paginate } = require('./plugins');
+const axios = require('axios');
 
 const evalSchema = mongoose.Schema(
     {
@@ -20,22 +21,11 @@ const evalSchema = mongoose.Schema(
             type: String,
             trim: true,
             lowercase: true,
-            //   validate(value) {
-            //     if (!validator.isEmail(value)) {
-            //       throw new Error('Invalid email');
-            //     }
-            //   },
         },
         path: {
             type: String,
             required: true,
             trim: true,
-            //   validate(value) {
-            //     if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
-            //       throw new Error('Password must contain at least one letter and one number');
-            //     }
-            //   },
-            //   private: true, // used by the toJSON plugin
         },
         detection_path: {
             type: String,
@@ -72,13 +62,39 @@ evalSchema.plugin(paginate);
 // };
 
 
-// userSchema.pre('save', async function (next) {
-//     const user = this;
-//     if (user.isModified('password')) {
-//         user.password = await bcrypt.hash(user.password, 8);
-//     }
-//     next();
-// });
+const FS_API = `http://10.0.0.199:3000`
+
+evalSchema.pre('remove', async function (next) {
+    const eval = this;
+    if (eval.detection_path) {
+        let originalImage = eval.detection_path.replace('/ftp-dir/', '')
+        const orgImage = `${FS_API}${originalImage}`;
+        try {
+            await axios.delete(orgImage)
+        } catch (err) {
+            console.log(`Clean Up Error: delete eval image`, err)
+            return next(error);
+        }
+    }
+    next();
+});
+
+evalSchema.pre('deleteMany', async function (next) {
+    try {
+        let deletedData = await Eval.find(this._conditions).lean()
+        deletedData.forEach(async (item) => {
+            if (item.detection_path) {
+                let originalImage = item.detection_path.replace('/ftp-dir/', '')
+                const orgImage = `${FS_API}/${originalImage}`;
+                await axios.delete(orgImage)
+            }
+        })
+        return next();
+    } catch (error) {
+        console.log(`Clean Up Error: delete eval image`, err)
+        return next(error);
+    }
+});
 
 /**
  * @typedef Eval

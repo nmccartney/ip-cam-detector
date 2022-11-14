@@ -120,11 +120,23 @@ const updateEvalById = async (evalId, updateBody) => {
  * @param {ObjectId} detectionId
  * @returns {Promise<Eval>}
  */
-const deleteEvalById = async (detectionId) => {
-    const eval = await getEvalById(detectionId);
+const deleteEvalById = async (evalId) => {
+    const eval = await getEvalById(evalId);
     if (!eval) {
         throw new ApiError(httpStatus.NOT_FOUND, 'Eval not found');
     }
+
+    if (eval.path) {
+        try {
+            let image = eval.path.replace('ftp-dir', '')
+            image = `${FS_API}${image}`;
+            await axios.delete(image)
+        } catch (err) {
+            console.log(`err: delete eval image ${orgImage}`, err)
+            throw new Error('failed delete eval image')
+        }
+    }
+
     await eval.remove();
     return eval;
 };
@@ -146,41 +158,7 @@ const isWatchingForTags = (tags, watchers) => {
 
 
 const cleanupAssociations = async (eval, detectionImage) => {
-
-    // TODO: normalize these paths for each micro-service
-    let originalImage = eval.path.replace('/ftp-dir/', '')
-    detectionImage = detectionImage.replace('ftp-dir', '')
-
-    console.log(`trying to delet orig: `, eval.path)
-    console.log(`trying to delet det: `, detectionImage)
-
-    const orgImage = `${FS_API}${originalImage}`;
-    const detectImage = `${FS_API}${detectionImage}`;
-
-    //  delete both assets
-    // const response = await Promise.all([
-    //     axios.delete(orgImage),
-    //     axios.delete(detectImage)
-    // ])
-    // console.log(`Got Deleted asset  resp: `, response);
-
-    try {
-        await axios.delete(orgImage)
-    } catch (err) {
-        console.log(`delete origin image ${orgImage}`, err)
-        throw new Error('failed delete orig image')
-
-    }
-
-    try {
-        await axios.delete(detectImage)
-    } catch (err) {
-        console.log(`delete detect image ${detectImage}`, err)
-        throw new Error('failed delete detect image')
-    }
-
     // delete deletion record
-    // await deleteDetectionById(eval.detectionId)
     let detection = await Detection.findById(eval.detectionId);
     if (!detection) {
         throw new ApiError(httpStatus.NOT_FOUND, 'Detection not found');
