@@ -35,7 +35,7 @@ const detectionSchema = mongoose.Schema(
             trim: true,
         },
         objectTags: {
-            type: Object,
+            type: [String],
             trim: true,
         },
         predictTags: {
@@ -85,7 +85,7 @@ detectionSchema.pre('remove', async function (next) {
             await axios.delete(originalImage)
         } catch (err) {
             console.log(`Clean Up Error: delete detection image ${originalImage}`, err.data)
-            return next(err);
+            // return next(err);
         }
     }
     next();

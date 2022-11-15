@@ -50,6 +50,19 @@ const createDetection = async (detectionBody) => {
 * @returns {Promise<QueryResult>}
 */
 const queryDetections = async (filter, options) => {
+    console.log(`filter `, filter)
+
+    if (filter.objectTags) {
+        filter.objectTags = { $all: filter.objectTags }
+    }
+
+    if (filter.fromTime) {
+        // filter.fromTime = { $all: filter.objectTags }
+    }
+    if (filter.toTime) {
+        // filter.fromTime = { $all: filter.objectTags }
+    }
+
     const detections = await Detection.paginate(filter, {
         sortBy: 'updatedAt:desc',
         ...options,
@@ -107,30 +120,35 @@ const deleteDetectionById = async (detectionId) => {
 };
 
 
-const cleanUpByPath = async (detectionPath) => {
+const cleanUp = async () => {
 
-    // let detection = Detection.findById(id).populate('evaluations');
-    let detection = Detection.findOne({ path: detectionPath }).populate('evaluations');
+    let detections = await Detection.find()
 
-    //  delete eval record
-    evals = detection.evaluations.map(eval => {
-        return Eval.deleteEvalById(eval.id)
+    var date = new Date();
+    const FIVE_MIN = 5 * 60 * 1000;
+    const THIRTY_MINS = 30 * 60 * 1000;
+    const TWOWEEKS = 1.2096e+9
+    oldDetections = detections.filter(d => {
+        if ((date - new Date(d.createdAt)) > THIRTY_MINS) {
+            // console.log('Delayed by more than 5 mins');
+            return d
+        }
     });
 
-    try {
-        await Promise.all(evals)
-    } catch (err) {
-        console.log(`Cleanup detectionevals  error: `, err)
-        throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up detection: ${detectionId}`);
-    }
+    console.log(`detections to delete ${oldDetections.length}/${detections.length}`)
+
+    let deletePromises = oldDetections.map((det) => {
+        return det.remove()
+    })
 
     try {
-        // await detection.remove();
-        await deleteDetectionById(detectionId)
+        await Promise.all(deletePromises)
     } catch (err) {
-        console.log(`Cleanup detection error: `, err)
-        throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up detection: ${eval.detectionId}`);
+        console.log(`Cleanup detections  error: `, err)
+        // throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up detections`);
     }
+
+    return { success: true }
 }
 
 module.exports = {
@@ -139,4 +157,5 @@ module.exports = {
     getDetectionById,
     updateDetectionById,
     deleteDetectionById,
+    cleanUp
 };

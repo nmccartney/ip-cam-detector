@@ -10,9 +10,10 @@ const createDetection = catchAsync(async (req, res) => {
 });
 
 const getDetections = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'role']);
+  const filter = pick(req.query, ['name', 'role', 'objectTags', 'startTime', 'endTime']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   const result = await detectionService.queryDetections(filter, options);
+  // console.log(result)
   res.send(result);
 });
 
@@ -34,10 +35,16 @@ const deleteDetection = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const cleanUpDetections = catchAsync(async (req, res) => {
+  await detectionService.cleanUp();
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
 module.exports = {
-    createDetection,
-    getDetections,
-    getDetection,
-    updateDetection,
-    deleteDetection,
+  createDetection,
+  getDetections,
+  getDetection,
+  updateDetection,
+  deleteDetection,
+  cleanUpDetections
 };

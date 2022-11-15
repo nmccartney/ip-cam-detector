@@ -12,6 +12,10 @@ router
     .get(validate(detectionValidation.getDetections), detectionController.getDetections);
 
 router
+    .route('/cleanup')
+    .post(detectionController.cleanUpDetections)
+
+router
     .route('/:detectionId')
     .get(validate(detectionValidation.getDetection), detectionController.getDetection)
     .patch(validate(detectionValidation.updateDetection), detectionController.updateDetection)

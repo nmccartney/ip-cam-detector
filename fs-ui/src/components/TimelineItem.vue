@@ -6,8 +6,7 @@
 
         <div class="timeline-panel">
             <div class="timeline-heading">
-                <h4 class="timeline-title">{{ item.title }}</h4>
-
+                <h4 class="timeline-title">{{ item.path }}</h4>
             </div>
             <div class="timeline-body" v-if="item.evaluations">
                 <!-- {{ item.body }} -->
@@ -16,8 +15,10 @@
                         <div class="timeline-panel-controls">
                             <div class="timestamp">
                                 <small class="text-muted">
-                                    <!-- {{ item.created }} -->
-                                    24. Sep 17:03
+                                    <!-- {{ item.createdAt }} -->
+
+                                    {{ timeSinceDetection }}
+                                    <!-- 24. Sep 17:03 -->
                                 </small>
                             </div>
                             <div class="controls">
@@ -32,9 +33,15 @@
                             <div>
                                 <v-chip small v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1" color="secondary">
                                     {{ key }}
-                                    <!-- {{ tag }} -->
                                 </v-chip>
                             </div>
+                        </div>
+
+                        <v-divider />
+                        <div>
+                            <v-chip small v-for="(key, i) in item.objectTags" :key="i" class="ma-1" color="secondary">
+                                {{ key }}
+                            </v-chip>
                         </div>
                     </v-col>
 
@@ -42,8 +49,56 @@
 
                         <div v-for="(ev, id) in item.evaluations" :key="id">
 
-                            <v-img v-if="ev.status == 'complete'"
-                                :src="'http://10.0.0.199:3000/' + ev.detection_path" />
+                            <!-- <v-img v-if="ev.status == 'complete'"
+                                :src="'http://10.0.0.199:3000/' + ev.detection_path" /> -->
+
+                            <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-img v-if="ev.status == 'complete'"  @click="dialog=true"
+                                        :src="'http://10.0.0.199:3000/' + ev.detection_path" />
+                                </template>
+
+                                <v-card>
+                                    <v-toolbar dark color="primary">
+                                        <v-btn icon dark @click="dialog = false">
+                                            <v-icon>mdi-close</v-icon>
+                                        </v-btn>
+                                        <v-toolbar-title>{{ item.path }}</v-toolbar-title>
+                                        <v-spacer></v-spacer>
+                                        <v-toolbar-items>
+                                            <!-- <v-btn icon @click="runJob()">
+                                <v-icon>mdi-play</v-icon>
+                            </v-btn> -->
+                                            <v-btn icon>
+                                                <v-icon>mdi-dots-vertical</v-icon>
+                                            </v-btn>
+                                        </v-toolbar-items>
+                                    </v-toolbar>
+                                    <v-card-text v-if="dialog">
+                                        <v-row>
+                                            <v-col>
+
+                                                <div v-for="(ev, id) in item.evaluations" :key="id">
+                                                    <div>
+                                                        <v-chip v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1"
+                                                            color="secondary">
+                                                            {{ key }}
+                                                            <!-- {{ tag }} -->
+                                                        </v-chip>
+                                                    </div>
+                                                    <v-img v-if="ev.status == 'complete'"
+                                                        :src="'http://10.0.0.199:3000/' + ev.detection_path" />
+                                                </div>
+                                            </v-col>
+                                            <v-col
+                                                v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
+                                                <v-img :src="'http://10.0.0.199:3000/' + item.path" />
+                                            </v-col>
+                                        </v-row>
+
+                                    </v-card-text>
+                                </v-card>
+                            </v-dialog>
                         </div>
                     </v-col>
                     <v-col v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
@@ -69,6 +124,7 @@ export default {
         item: {}
     },
     data: () => ({
+        dialog: false,
         controls: [
             // {
             //     method: 'edit',
@@ -94,7 +150,46 @@ export default {
             }
         ],
     }),
+    computed: {
+        timeSinceDetection() {
+            return this.timeDifference(Date.now(), new Date(this.item.createdAt))
+        }
+    },
     methods: {
+        timeDifference(current, previous) {
+
+            var msPerMinute = 60 * 1000;
+            var msPerHour = msPerMinute * 60;
+            var msPerDay = msPerHour * 24;
+            var msPerMonth = msPerDay * 30;
+            var msPerYear = msPerDay * 365;
+
+            var elapsed = current - previous;
+
+            if (elapsed < msPerMinute) {
+                return Math.round(elapsed / 1000) + ' seconds ago';
+            }
+
+            else if (elapsed < msPerHour) {
+                return Math.round(elapsed / msPerMinute) + ' minutes ago';
+            }
+
+            else if (elapsed < msPerDay) {
+                return Math.round(elapsed / msPerHour) + ' hours ago';
+            }
+
+            else if (elapsed < msPerMonth) {
+                return 'approximately ' + Math.round(elapsed / msPerDay) + ' days ago';
+            }
+
+            else if (elapsed < msPerYear) {
+                return 'approximately ' + Math.round(elapsed / msPerMonth) + ' months ago';
+            }
+
+            else {
+                return 'approximately ' + Math.round(elapsed / msPerYear) + ' years ago';
+            }
+        }
     }
 };
 </script>

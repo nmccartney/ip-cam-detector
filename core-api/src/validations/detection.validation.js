@@ -15,6 +15,7 @@ const getDetections = {
         sortBy: Joi.string(),
         limit: Joi.number().integer(),
         page: Joi.number().integer(),
+        objectTags: Joi.array().items(Joi.string()),
     }),
 };
 

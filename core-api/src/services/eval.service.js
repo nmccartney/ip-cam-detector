@@ -103,14 +103,23 @@ const updateEvalById = async (evalId, updateBody) => {
         return eval
     }
 
-    // if (updateBody.email && (await Detection.isEmailTaken(updateBody.email, detectionId))) {
-    //   throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
-    // }
     eval = Object.assign(eval, updateBody);
     eval.detection_path = eval.detection_path.replace('ftp-dir/', '')
     eval = await eval.save();
 
     console.log(`Saved eval: ${eval.id}`)
+
+    let detection = await Detection.findById(eval.detectionId);
+    if (!detection) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Detection not found');
+    } else {
+        try {
+            detection.objectTags = [...new Set([...detection.objectTags, ...(Object.keys(updateBody.tags))])]
+            detection = await detection.save();
+        } catch (err) {
+            console.log(`Error updating tags in detection: `, err)
+        }
+    }
 
     return eval;
 };
@@ -169,14 +178,6 @@ const cleanupAssociations = async (eval, detectionImage) => {
     } catch (err) {
         console.log(`Cleanup detection error: `, err)
         throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up detection: ${eval.detectionId}`);
-    }
-
-    //  delete eval record
-    try {
-        await deleteEvalById(eval.id)
-    } catch (err) {
-        console.log(`Cleanup eval error: `, err)
-        throw new ApiError(httpStatus.NOT_FOUND, `Failed to clean up eval: ${eval.detectionId}`);
     }
 }
 

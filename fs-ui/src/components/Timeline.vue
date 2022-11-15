@@ -2,6 +2,9 @@
     <div class="timeline-wrapper">
         <!-- <h2>Timeline</h2> -->
 
+        <TimeRange />
+
+        <v-pagination @input="getNewPageList" v-model="page" :length="length"></v-pagination>
 
         <div id="timeline-template">
             <ul class="timeline">
@@ -17,6 +20,8 @@
 <script>
 // import Directory from './Directory';
 import TimelineItem from './TimelineItem';
+import TimeRange from './TimeRange'
+import axios from 'axios';
 
 // eslint-disable-next-line
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -24,7 +29,8 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
 export default {
     name: 'DetectionViewer',
     components: {
-        TimelineItem
+        TimelineItem,
+        TimeRange
     },
     props: {
         path: {
@@ -64,6 +70,7 @@ export default {
     async created() {
         // this.loading = true;
         // await pause(400)
+
         fetch(`http://10.0.0.199:3030/v1/detection`)
             .then(res => res.json())
             .then(res => {
@@ -76,6 +83,15 @@ export default {
                 // this.assets = res.map(item => Object.assign({ path: item, name: item, children: [] }, {}))
             })
             .catch(err => { throw err })
+
+        try {
+            const response = await axios.get(`http://10.0.0.199:3030/v1/detection`);
+            // eslint-disable-next-line
+            console.log('detection get:', response.data);
+        } catch (error) {
+            // eslint-disable-next-line
+            console.error(`Error! Cannot add detection to core: ${error.message}`);
+        }
 
         if (this.detectionInterval) {
             clearInterval(this.detectionInterval)

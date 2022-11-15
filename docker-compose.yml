@@ -2,6 +2,12 @@ version: '3'
 
 volumes:
   dbdata:
+  ftp-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /media/nmccartney/ruxton
+      o: bind
 
 networks:
   node-network:
@@ -20,7 +26,7 @@ services:
       - eval-worker
       # - fs-ui
     volumes:
-      - ./ftp-dir:/usr/src/node-app/ftp-dir
+      - ftp-data:/usr/src/node-app/ftp-dir
       - ./core-api:/usr/src/node-app
     container_name: core-api-dev
     command: npm run dev # node src/index.js
@@ -45,7 +51,7 @@ services:
       - core-api
       - eval-worker
     volumes:
-      - ./ftp-dir:/usr/src/node-app/ftp-dir
+      - ftp-data:/usr/src/node-app/ftp-dir
       - ./ftp-server:/usr/src/node-app
     container_name: ftp-server
     command: node index.js
@@ -57,20 +63,22 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - ./ftp-dir:/usr/src/node-app/ftp-dir
+      - ftp-data:/usr/src/node-app/ftp-dir
       - ./fs-api:/usr/src/node-app
     container_name: fs-api-dev
     command: node src/index.js
 
   fs-ui:
     build: ./fs-ui
+    stdin_open: true
+    tty: true
     depends_on:
       - core-api
       - fs-api
     ports:
       - '8080:8080'
     volumes:
-      - ./ftp-dir:/usr/src/node-app/ftp-dir
+      - ftp-data:/usr/src/node-app/ftp-dir
       - ./fs-ui:/usr/src/node-app
     container_name: fs-ui-dev
     command: npm run serve
@@ -83,7 +91,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./ftp-dir:/flask-api/ftp-dir
+      - ftp-data:/flask-api/ftp-dir
       - ./eval-worker:/flask-api
       # networks:
       #   - db_network

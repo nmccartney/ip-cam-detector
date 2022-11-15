@@ -92,13 +92,27 @@ const cleanup = (dir) => {
 
     (async () => {
         try {
+
+            const rsize = await dirSize(rootLocal);
+            console.log(`root: ${rootLocal} -- Size: ${formatBytes(rsize)}`);
+
             const size = await dirSize(directoryPath);
-            // console.log(`Dir: ${directoryPath} -- Size: ${formatBytes(size)}`);
-            const limit = 50000000 // 50MB
+            const GB = Math.pow(1024,3)
+            const limit = GB  // 1GB
+            console.log(`Dir: ${directoryPath} -- Size: ${formatBytes(size)}/${formatBytes(limit)}`);
+            
             if (size > limit) {
                 //clean up files
                 console.log(`Hit Size Limit. Directory (${directoryPath}) Size: ${formatBytes(size)}`)
-                await removeLastAdded(directoryPath)
+                // await removeLastAdded(directoryPath)
+
+                const url = `http://10.0.0.199:3030/v1/detection/cleanup`;
+                try {
+                    const response = await axios.post(url);
+                    console.log('cleanup detection to core', response.status);
+                } catch (error) {
+                    console.error(`Error! Cannot add detection to core: ${error.message}`);
+                }
             }
         } catch (err) {
             console.log('error: ', err)
