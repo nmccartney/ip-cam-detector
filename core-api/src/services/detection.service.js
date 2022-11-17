@@ -64,7 +64,7 @@ const queryDetections = async (filter, options) => {
     }
 
     const detections = await Detection.paginate(filter, {
-        sortBy: 'updatedAt:desc',
+        sortBy: 'createdAt:desc',
         ...options,
         populate: 'evaluations'
     });

@@ -8,7 +8,7 @@ var rm = require('rimraf');
 var error = require('debug')('rest-fs:fsDriver');
 
 // returns array of files and dir. trailing slash determines type.
-var listAll = function(args, cb) {
+var listAll = function (args, cb) {
   var dirPath = args.dirPath;
   var finder = findit(dirPath);
   var files = [];
@@ -27,7 +27,7 @@ var listAll = function(args, cb) {
 };
 
 // returns array of files and dir. trailing slash determines type.
-var list = function(args, cb) {
+var list = function (args, cb) {
   var dirPath = args.dirPath;
   var filesList = [];
   var cnt = 0;
@@ -37,7 +37,7 @@ var list = function(args, cb) {
     if (files.length === 0) {
       return cb(null, []);
     }
-    var formatFileList = function(index) {
+    var formatFileList = function (index) {
       return function (err, stat) {
         // here we do something special. if stat failes we know that there is something here
         // but we might not have permissons. show it as a file.
@@ -65,9 +65,10 @@ var list = function(args, cb) {
 /*
   read file from filepath
 */
-var readFile = function(args, cb) {
+var readFile = function (args, cb) {
   var filePath = args.filePath;
   var encoding = args.encoding;
+  // console.log(`testing read file`, { filePath, encoding })
 
   fs.readFile(filePath, encoding, cb);
 };
@@ -75,7 +76,7 @@ var readFile = function(args, cb) {
 /*
   mkdir
 */
-var mkdir = function(args, cb)  {
+var mkdir = function (args, cb) {
   var dirPath = args.dirPath;
   var mode = args.mode;
 
@@ -85,7 +86,7 @@ var mkdir = function(args, cb)  {
 /*
   delete directory
 */
-var rmdir = function(args, cb)  {
+var rmdir = function (args, cb) {
   var dirPath = args.dirPath;
   var clobber = args.clobber;
 
@@ -98,25 +99,25 @@ var rmdir = function(args, cb)  {
 /*
   writeFile
 */
-var writeFile = function(args, cb)  {
-  var dirPath = args.dirPath;
+var writeFile = function (args, cb) {
+  var dirPath = `/usr/src/node-app/ftp-dir${args.dirPath}`;
   var data = args.data;
   var options = args.options;
-
+  console.log(`testing write file`, { dirPath, data, options })
   fs.writeFile(dirPath, data, options, cb);
 };
 
 /*
   write file with stream
 */
-var writeFileStream = function(args, cb)  {
+var writeFileStream = function (args, cb) {
   var dirPath = args.dirPath;
   var stream = args.stream;
   var options = args.options;
   var file = fs.createWriteStream(dirPath, options);
 
   file.on('error', cb);
-  file.on('finish', function() {
+  file.on('finish', function () {
     cb();
   });
   stream.pipe(file);
@@ -125,7 +126,7 @@ var writeFileStream = function(args, cb)  {
 /*
   delete file
 */
-var unlink = function(args, cb)  {
+var unlink = function (args, cb) {
   var dirPath = args.dirPath;
 
   fs.unlink(dirPath, cb);
@@ -139,28 +140,28 @@ var move = function (args, cb) {
   var newPath = args.newPath;
   var opts = args.options;
   // have to remove trailing slaches
-  if(oldPath.substr(-1) == '/') {
+  if (oldPath.substr(-1) == '/') {
     oldPath = oldPath.substr(0, oldPath.length - 1);
   }
-  if(newPath.substr(-1) == '/') {
+  if (newPath.substr(-1) == '/') {
     newPath = newPath.substr(0, newPath.length - 1);
   }
 
   // workaround for ncp for dirs. should error if we trying to mv into own dir
-  fs.stat(oldPath, function(err, stats) {
+  fs.stat(oldPath, function (err, stats) {
     if (err) { return cb(err); }
 
     if (stats.isDirectory() &&
       ~newPath.indexOf(oldPath) &&
       newPath.split("/").length > oldPath.split("/").length) {
-        err = new Error('cannot move inside itself');
-        err.code = 'EPERM';
-        return cb(err);
+      err = new Error('cannot move inside itself');
+      err.code = 'EPERM';
+      return cb(err);
     }
 
     if (opts.clobber) {
       // also work around bug for clobber in dir
-      return rm(newPath, function(err) {
+      return rm(newPath, function (err) {
         if (err) { return cb(err); }
         mv(oldPath, newPath, opts, cb);
       });
@@ -175,7 +176,7 @@ var move = function (args, cb) {
 var stat = function (args, cb) {
   var path = args.filePath;
 
-  fs.stat(path, function(err, stats) {
+  fs.stat(path, function (err, stats) {
     if (err) { return cb(err); }
     cb(null, stats);
   });

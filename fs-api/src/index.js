@@ -1,9 +1,16 @@
-app = require('express')();
+express = require('express');
+app = express();
 var cors = require('cors')
+const multer = require('multer');
+
 restfs = require('./fileserver') // require('rest-fs');
 
 const PORT = 3000
 
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb' }));
+const upload = multer();
+app.use(upload.single("file"));
 app.use(cors())
 app.use(beforeRestFs)
 app = restfs(app);
@@ -45,14 +52,15 @@ function beforeRestFs(req, res, next) {
         req.url = '/usr/src/node-app/ftp-dir' + req.url
     }
     //
-    if (req.method === 'POST') {
-        res.status(304);
-        res.end();
-    }
-    if (req.method === 'PUT') {
-        res.status(304);
-        res.end();
-    }
+    // if (req.method === 'POST') {
+    //     res.status(304);
+    //     res.end();
+    // }
+
+    // if (req.method === 'PUT') {
+    //     res.status(304);
+    //     res.end();
+    // }
 
     if (req.method === 'DELETE') {
         // res.status(304);

@@ -15,6 +15,7 @@ from .config import BaseConfig
 from .thread_queue import ThreadQueue
 from .thread_runner import ThreadRunner
 from .detection_thread import ObjectDetectionThread
+from .prediction_thread import PredictionThread
 
 parser = reqparse.RequestParser()
 parser.add_argument("image", type=str, action="split")
@@ -27,11 +28,11 @@ execution_path = os.getcwd()
 """
     SETUP DETECTION DEPENDECIES
 """
-# prediction = ImageClassification()
-# prediction.setModelTypeAsResNet50()
-# # prediction.setModelPath(os.path.join(execution_path, "inception_v3_weights_tf_dim_ordering_tf_kernels.h5"))
-# prediction.setModelPath(os.path.join(execution_path, "models/resnet50_imagenet_tf.2.0.h5"))
-# prediction.loadModel()
+prediction = ImageClassification()
+prediction.setModelTypeAsResNet50()
+# prediction.setModelPath(os.path.join(execution_path, "inception_v3_weights_tf_dim_ordering_tf_kernels.h5"))
+prediction.setModelPath(os.path.join(execution_path, "models/resnet50_imagenet_tf.2.0.h5"))
+prediction.loadModel()
 
 
 detector = ObjectDetection()
@@ -61,7 +62,7 @@ class Health(Resource):
         return {"ok": True, "success": True, "test": True, }, 200
 
 
-@rest_api.route('/run')
+@rest_api.route('/run-object')
 class Run(Resource):
     """
        run image detection
@@ -88,22 +89,24 @@ class Run(Resource):
 """
     classify endpoint
 """
-# @rest_api.route('/classify')
-# class Run(Resource):
-#     """
-#        run image classification
-#     """
-#     @rest_api.expect(parser)
-#     def get(self):
+@rest_api.route('/run-prediction')
+class RunPrediction(Resource):
+    """
+       run image classification
+    """
+    @rest_api.expect(parser)
+    def get(self):
 
-#         imagePath = parser.parse_args()['image'][0]
-#         print('img:', imagePath)
+        imagePath = parser.parse_args()['image'][0]
+        evalId = parser.parse_args()['eval'][0]
+        print('img:', imagePath)
         
-#         predictionThread = PredictionThread (imagePath)
-#         predictionThread.start()
-#         print('Thread: ', predictionThread.ident)
+        predictionThread = PredictionThread (evalId,imagePath,prediction)
+        predictionThread.start()
+        print('Thread: ', predictionThread.ident)
 
-#         return {"ok": True, "success": True, "ident": predictionThread.ident, "img": imagePath}, 200
+        # "ident": predictionThread.ident, 
+        return {"ok": True, "success": True, "evalId": evalId, "img": imagePath}, 200
 
 
 

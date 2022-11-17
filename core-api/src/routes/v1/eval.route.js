@@ -16,7 +16,7 @@ router
     .get(validate(evalValidation.getEvals), evalController.getEvals);
 
 router
-    .route('/prediection')
+    .route('/prediction')
     .post(validate(evalValidation.startPredictionEval), evalController.startPredictionEval)
     .get(validate(evalValidation.getEvals), evalController.getEvals);
 

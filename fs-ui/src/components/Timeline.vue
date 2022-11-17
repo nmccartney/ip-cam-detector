@@ -2,13 +2,35 @@
     <div class="timeline-wrapper">
         <!-- <h2>Timeline</h2> -->
 
-        <TimeRange />
+        <!-- <TimeRange /> -->
+
+
+        <!-- <v-select v-model="tags" @change="refresh" :items="tagTypes" attach chips label="Detection Types" multiple></v-select> -->
+
+
+        <v-row>
+            <v-col sm="9">
+                <v-autocomplete v-model="tags" :items="tagTypes" outlined dense chips small-chips
+                    @change="autoCompleteHanlder" label="Detection Types" multiple>
+                    <template v-slot:selection="data">
+                        <v-chip v-bind="data.attrs" :input-value="data.selected" close @click="data.select"
+                            @click:close="remove(data.item, data.parent)">
+                            {{ data.item }}
+                        </v-chip>
+                    </template>
+                </v-autocomplete>
+            </v-col>
+            <v-col sm="3">
+                <v-switch v-model="autoRefresh" :label="`Auto refresh`"></v-switch>
+            </v-col>
+        </v-row>
+
 
         <v-pagination @input="getNewPageList" v-model="page" :length="length"></v-pagination>
 
         <div id="timeline-template">
             <ul class="timeline">
-                <li v-for="(item, id) in items" is="timeline-item" :item="item" :key="id">
+                <li v-for="(item, id) in items" is="timeline-item" :item="item" :onDelete="refresh" :key="id">
                 </li>
             </ul>
         </div>
@@ -20,8 +42,17 @@
 <script>
 // import Directory from './Directory';
 import TimelineItem from './TimelineItem';
-import TimeRange from './TimeRange'
-import axios from 'axios';
+// import TimeRange from './TimeRange'
+// import axios from 'axios';
+
+const IMAGE_AI_TAGS = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop_sign',
+    'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra',
+    'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard',
+    'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
+    'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange',
+    'broccoli', 'carrot', 'hot dog', 'pizza', 'donot', 'cake', 'chair', 'couch', 'potted plant', 'bed',
+    'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven',
+    'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair dryer', 'toothbrush']
 
 // eslint-disable-next-line
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -30,7 +61,7 @@ export default {
     name: 'DetectionViewer',
     components: {
         TimelineItem,
-        TimeRange
+        // TimeRange
     },
     props: {
         path: {
@@ -39,8 +70,11 @@ export default {
         // items: []
     },
     data: () => ({
+        tagTypes: IMAGE_AI_TAGS.sort(),
+        tags: ['person'],
         detections: [],
         // pageModel: 0,
+        autoRefresh: false,
         page: 0,
         length: 0,
         detectionLimit: 10,
@@ -71,33 +105,40 @@ export default {
         // this.loading = true;
         // await pause(400)
 
-        fetch(`http://10.0.0.199:3030/v1/detection`)
-            .then(res => res.json())
-            .then(res => {
-                this.loading = false;
-                // eslint-disable-next-line
-                console.log('res: ', res)
-                this.items = res.results
-                this.page = res.page
-                this.length = res.totalPages
-                // this.assets = res.map(item => Object.assign({ path: item, name: item, children: [] }, {}))
-            })
-            .catch(err => { throw err })
+        // fetch(`http://10.0.0.199:3030/v1/detection?${this.tagQuery}`)
+        //     .then(res => res.json())
+        //     .then(res => {
+        //         this.loading = false;
+        //         // eslint-disable-next-line
+        //         console.log('res: ', res)
+        //         this.items = res.results
+        //         this.page = res.page
+        //         this.length = res.totalPages
+        //         // this.assets = res.map(item => Object.assign({ path: item, name: item, children: [] }, {}))
+        //     })
+        //     .catch(err => {
+        //         // throw err 
+        //         // eslint-disable-next-line
+        //         console.warn('detections get:', err);
+        //     })
 
-        try {
-            const response = await axios.get(`http://10.0.0.199:3030/v1/detection`);
-            // eslint-disable-next-line
-            console.log('detection get:', response.data);
-        } catch (error) {
-            // eslint-disable-next-line
-            console.error(`Error! Cannot add detection to core: ${error.message}`);
-        }
+        // try {
+        //     const response = await axios.get(`http://10.0.0.199:3030/v1/detection`);
+        //     // eslint-disable-next-line
+        //     console.log('detection get:', response.data);
+        // } catch (error) {
+        //     // eslint-disable-next-line
+        //     console.error(`Error! Cannot add detection to core: ${error.message}`);
+        // }
 
         if (this.detectionInterval) {
             clearInterval(this.detectionInterval)
             this.detectionInterval = null;
         }
-        this.detectionInterval = setInterval(this.refresh, 2000)
+
+        this.detectionInterval = setInterval(this.autoRefreshHandler, 2000)
+
+        await this.refresh()
     },
     beforeDestroy() {
         if (this.detectionInterval) {
@@ -106,25 +147,48 @@ export default {
         }
     },
     computed: {
+        tagQuery() {
+            if (this.tags.length == 0) return ''
+            let q = this.tags.reduce((acc, curr) => {
+                if (!acc) acc = ''
+                return acc += `&objectTags[]=${curr}`
+            }, null)
+            return q
+        }
     },
     methods: {
+        async autoCompleteHanlder() {
+            this.page = 1
+            await this.refresh()
+        },
+        async autoRefreshHandler() {
+            if (this.autoRefresh) {
+                await this.refresh()
+            }
+        },
         async refresh() {
             await this.getNewPageList(this.page)
         },
         async getNewPageList(val) {
             let page = val || 0
-            await fetch(`http://10.0.0.199:3030/v1/detection?page=${page}`)
+            await fetch(`http://10.0.0.199:3030/v1/detection?page=${page}${this.tagQuery}`)
                 .then(res => res.json())
                 .then(res => {
                     this.loading = false;
                     // eslint-disable-next-line
-                    console.log('res: ', res)
+                    // console.log('res: ', res)
                     this.items = res.results
                     this.page = res.page
                     this.length = res.totalPages
                     // this.assets = res.map(item => Object.assign({ path: item, name: item, children: [] }, {}))
                 })
                 .catch(err => { throw err })
+        },
+        remove(item, parent) {
+            parent.blur()
+            const index = this.tags.indexOf(item)
+            if (index >= 0) this.tags.splice(index, 1)
+            this.refresh()
         },
     }
 };

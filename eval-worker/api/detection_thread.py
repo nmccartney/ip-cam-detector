@@ -25,7 +25,7 @@ class ObjectDetectionThread(threading.Thread):
 
         path = os.path.join(execution_path , imagePath)
         newPath = os.path.join(execution_path , newFile)
-        print('Job started : ', imagePath, '  new: ', newPath)
+        print('Detection Job Started : ', imagePath, '  new: ', newPath)
         # print('exec: ', path)
 
         tagDict = {}

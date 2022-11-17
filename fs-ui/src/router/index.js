@@ -2,6 +2,7 @@
 import AssetViewer from '../components/AssetViewer';
 import DetectionViewer from '../components/DetectionViewer';
 import Timeline from '../components/Timeline';
+import Uploader from '../components/Uploader';
 
 import Vue from 'vue'
 import VueRouter from 'vue-router'
@@ -34,6 +35,11 @@ const routes = [
         path: '/file-explorer',
         name: 'File Explorer',
         component: AssetViewer
+    },
+    {
+        path: '/uploader',
+        name: 'Uploader',
+        component: Uploader
     },
 ]
 

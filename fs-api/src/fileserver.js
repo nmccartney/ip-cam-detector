@@ -3,6 +3,7 @@ var bodyParser = require('body-parser');
 var fileDriver = require('./fsDriver.js');
 var url = require('url');
 var mime = require('mime');
+const multer = require('multer');
 // var path = require('path'); // remove:nm
 // var mw = require('dat-middleware'); // remove:nm
 // var flow = require('middleware-flow'); //remove: nm
@@ -20,6 +21,8 @@ var fileserver = function (app) {
     app.use(bodyParser.urlencoded({
         extended: true
     }));
+    const upload = multer();
+    app.use(upload.single("file"));
     app.use(morgan('combined', {
         skip: function () { return process.env.LOG !== 'true'; }
     }));
@@ -35,6 +38,7 @@ var fileserver = function (app) {
             message: err.message,
             stack: err.stack
         };
+        console.log(outErr)
         res.status(500).send(outErr);
     });
     return app;
@@ -192,7 +196,11 @@ var postFileOrDir = function (req, res, next) {
         }, sendCode(201, req, res, next, formatOutData(req, dirPath)));
     }
 
+    console.log(`post headers ${!isJson}`, req.headers['content-type'])
+
     if (!isJson) {
+        console.log(`post write  stream `, req.file)
+
         // default is to not clobber
         options.encoding = req.query.encoding || 'utf8';
         options.mode = req.query.mode || 438;
@@ -205,6 +213,7 @@ var postFileOrDir = function (req, res, next) {
             opts: opts
         }, sendCode(201, req, res, next, formatOutData(req, dirPath)));
     }
+    console.log(`post write file `, req.file)
 
     options.encoding = req.body.encoding || 'utf8';
     options.mode = req.body.mode || 438;
@@ -244,6 +253,7 @@ var putFileOrDir = function (req, res, next) {
             opts: opts
         }, sendCode(201, req, res, next, formatOutData(req, dirPath)));
     } else {
+        console.log(` put file `, req.body)
         options.encoding = req.body.encoding || 'utf8';
         options.mode = req.body.mode || 438;
         var data = req.body.content || '';

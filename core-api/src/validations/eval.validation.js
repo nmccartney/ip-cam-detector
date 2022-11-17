@@ -3,13 +3,13 @@ const { password, objectId } = require('./custom.validation');
 
 const startObjectEval = {
     query: Joi.object().keys({
-        image: Joi.string(),
+        detectionId: Joi.string().custom(objectId),
     }),
 };
 
 const startPredictionEval = {
     query: Joi.object().keys({
-        image: Joi.string(),
+        detectionId: Joi.string().custom(objectId),
     }),
 };
 

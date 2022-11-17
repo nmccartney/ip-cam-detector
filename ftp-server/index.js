@@ -98,7 +98,7 @@ const cleanup = (dir) => {
 
             const size = await dirSize(directoryPath);
             const GB = Math.pow(1024,3)
-            const limit = GB  // 1GB
+            const limit = GB*10  // 1GB
             console.log(`Dir: ${directoryPath} -- Size: ${formatBytes(size)}/${formatBytes(limit)}`);
             
             if (size > limit) {

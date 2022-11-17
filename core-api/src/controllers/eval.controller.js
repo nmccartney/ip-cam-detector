@@ -5,12 +5,12 @@ const catchAsync = require('../utils/catchAsync');
 const { evalService } = require('../services');
 
 const startObjectEval = catchAsync(async (req, res) => {
-    const eval = await evalService.createEval(req.body);
+    const eval = await evalService.createEval({ ...req.body, type: 'object' });
     res.status(httpStatus.CREATED).send(eval);
 });
 
 const startPredictionEval = catchAsync(async (req, res) => {
-    const eval = await evalService.createEval(req.body);
+    const eval = await evalService.createEval({ ...req.body, type: 'prediction' });
     res.status(httpStatus.CREATED).send(eval);
 });
 

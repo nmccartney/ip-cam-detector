@@ -16,15 +16,40 @@ const FS_API = `http://10.0.0.199:3000`
  * @returns {Promise<Eval>}
  */
 const createEval = async (evalBody) => {
-    // if (await Detection.isEmailTaken(detectionBody.email)) {
-    //     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
-    // }
+    // TODO: currently createEval is trigger by
+    // - Eval create - rest api
+    // - Detection create - rest api
+    // Find a better way to handle the assoication
 
-    let eval = await Eval.create(evalBody);
+    let detection
+
+    if (!evalBody.status) {
+        detection = await Detection.findById(evalBody.detectionId);
+        if (!detection) {
+            throw new ApiError(httpStatus.NOT_FOUND, 'Detection not found:' + evalBody.detectionId);
+        }
+        console.log(`Eval body `, evalBody)
+        // return {}
+    }
+
+
+    // console.log(`Start ${evalBody.type} Job for detection: `, detection)
+    // // create new evaluation obj
+    let newEvalBody = {
+        ...evalBody,
+        path: detection ? detection.path : evalBody.path,
+        detectionId: detection ? detection._id : evalBody.detectionId,
+        status: 'initialized',
+        owner: detection ? detection._id : evalBody.detectionId,
+        type: evalBody.type || 'object'
+    }
+
+    let eval = await Eval.create(newEvalBody);
 
     // start eval job from eval service
-    const url = `${EVAL_API}run?image=ftp-dir${evalBody.path}&eval=${eval.id}`;
+    const url = `${EVAL_API}run-${newEvalBody.type || 'object'}?image=ftp-dir${newEvalBody.path}&eval=${eval.id}`;
     try {
+        console.log(`starting job `, url);
         const response = await axios.get(url);
         console.log(`Got eval job: `, response.data.evalId);
         // could  update eval model  here or expect a new  request
@@ -35,6 +60,19 @@ const createEval = async (evalBody) => {
             console.error('Core Eval-Service Response Error B: ', error.code);
         }
         throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to start eval');
+    }
+
+    if (!evalBody.status) {
+        console.log(`Eval save detection with new eval `, eval)
+        try {
+            // update detection with new eval
+            detection.evaluations = [...detection.evaluations, eval]
+            await detection.save()
+        } catch (err) {
+            let error = Error(`Failed to update detction after starting job, ${err.message}`)
+            console.error(`Core Eval: `, error)
+            return eval
+        }
     }
 
     return eval
@@ -92,7 +130,7 @@ const updateEvalById = async (evalId, updateBody) => {
             throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to Clean up after zero tags found.');
         }
         return eval
-    } else if (!isWatchingForTags(updateBody.tags, [])) {
+    } else if (eval.type === "object" && !isWatchingForTags(updateBody.tags, [])) {
         console.log(`No tags of any significance. Lets remove all records`)
         try {
             await cleanupAssociations(eval, updateBody.detection_path)

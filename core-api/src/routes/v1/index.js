@@ -4,6 +4,7 @@ const userRoute = require('./user.route');
 const detectionRoute = require('./detection.route');
 const evalRoute = require('./eval.route');
 const triggerRoute = require('./trigger.route');
+const uploaderRoute = require('./uploader.route');
 const docsRoute = require('./docs.route');
 const config = require('../../config/config');
 
@@ -29,6 +30,10 @@ const defaultRoutes = [
   {
     path: '/triggers',
     route: triggerRoute,
+  },
+  {
+    path: '/upload',
+    route: uploaderRoute
   },
 ];
 

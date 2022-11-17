@@ -3,3 +3,4 @@ module.exports.userController = require('./user.controller');
 module.exports.detectionController = require('./detection.controller');
 module.exports.evalController = require('./eval.controller');
 module.exports.triggerController = require('./trigger.controller');
+module.exports.uploaderController = require('./uploader.controller');

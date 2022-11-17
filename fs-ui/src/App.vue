@@ -66,7 +66,7 @@
       </v-btn>
     </v-app-bar>
 
-    <v-content>
+    <v-main>
       <!-- <div class="root-folder">
         <router-view />
       </div> -->
@@ -76,7 +76,7 @@
         <!-- If using vue-router -->
         <router-view></router-view>
       </v-container>
-    </v-content>
+    </v-main>
 
 
     <v-footer app>

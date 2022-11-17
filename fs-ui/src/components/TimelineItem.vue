@@ -20,6 +20,13 @@
                                     {{ timeSinceDetection }}
                                     <!-- 24. Sep 17:03 -->
                                 </small>
+                                <br>
+                                <small class="text-muted">
+                                    Evaluations: {{ item.evaluations.length }}
+                                    <ul>
+                                        <li v-for="(ev, id) in item.evaluations" :key="id">">{{ ev.createdAt }}</li>
+                                    </ul>
+                                </small>
                             </div>
                             <div class="controls">
                                 <TimelineControls :item="item" v-for="(control, id) in controls" :control="control"
@@ -29,13 +36,13 @@
 
                         <v-divider></v-divider>
 
-                        <div v-for="(ev, id) in item.evaluations" :key="id">
+                        <!-- <div v-for="(ev, id) in item.evaluations" :key="id">
                             <div>
                                 <v-chip small v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1" color="secondary">
                                     {{ key }}
                                 </v-chip>
                             </div>
-                        </div>
+                        </div> -->
 
                         <v-divider />
                         <div>
@@ -54,7 +61,7 @@
 
                             <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
                                 <template v-slot:activator="{ on, attrs }">
-                                    <v-img v-if="ev.status == 'complete'"  @click="dialog=true"
+                                    <v-img v-if="ev.status == 'complete'" @click="dialog = true"
                                         :src="'http://10.0.0.199:3000/' + ev.detection_path" />
                                 </template>
 
@@ -66,9 +73,14 @@
                                         <v-toolbar-title>{{ item.path }}</v-toolbar-title>
                                         <v-spacer></v-spacer>
                                         <v-toolbar-items>
-                                            <!-- <v-btn icon @click="runJob()">
-                                <v-icon>mdi-play</v-icon>
-                            </v-btn> -->
+                                            <v-btn @click="runJob('object')">
+                                                <v-icon>mdi-play</v-icon>
+                                                Object Job
+                                            </v-btn>
+                                            <v-btn @click="runJob('prediction')">
+                                                <v-icon>mdi-play</v-icon>
+                                                Classify Job
+                                            </v-btn>
                                             <v-btn icon>
                                                 <v-icon>mdi-dots-vertical</v-icon>
                                             </v-btn>
@@ -115,13 +127,16 @@
 import TimelineControls from './TimelineControls';
 import axios from 'axios';
 
+let VM = {};
+
 export default {
     name: "TimelineItem",
     components: {
         TimelineControls
     },
     props: {
-        item: {}
+        item: {},
+        onDelete: { type: Function, default: () => { } }
     },
     data: () => ({
         dialog: false,
@@ -146,16 +161,34 @@ export default {
                         // eslint-disable-next-line
                         console.error(`Error! Cannot add detection to core: ${error.message}`);
                     }
+
+                    VM.onDelete()
                 }
             }
         ],
     }),
+    created() {
+        VM = this
+    },
     computed: {
         timeSinceDetection() {
             return this.timeDifference(Date.now(), new Date(this.item.createdAt))
         }
     },
     methods: {
+        async runJob(type) {
+            // eslint-disable-next-line
+            console.log(`run ${type} job ${this.item.id}`);
+
+            try {
+                const response = await axios.post(`http://10.0.0.199:3030/v1/eval/${type}`, { detectionId: this.item.id });
+                // eslint-disable-next-line
+                console.log('Run job for detection to core', response.data);
+            } catch (error) {
+                // eslint-disable-next-line
+                console.error(`Error! Cannot add detection to core: ${error.message}`);
+            }
+        },
         timeDifference(current, previous) {
 
             var msPerMinute = 60 * 1000;

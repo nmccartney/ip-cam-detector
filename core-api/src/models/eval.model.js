@@ -22,6 +22,10 @@ const evalSchema = mongoose.Schema(
             trim: true,
             lowercase: true,
         },
+        type: {
+            type: String,
+            trim: true,
+        },
         path: {
             type: String,
             required: true,
@@ -73,7 +77,7 @@ evalSchema.pre('remove', async function (next) {
             await axios.delete(orgImage)
         } catch (err) {
             console.log(`Clean Up Error: delete eval image`, err)
-            return next(error);
+            return next();
         }
     }
     next();
@@ -82,18 +86,36 @@ evalSchema.pre('remove', async function (next) {
 evalSchema.pre('deleteMany', async function (next) {
     try {
         let deletedData = await Eval.find(this._conditions).lean()
-        deletedData.forEach(async (item) => {
-            if (item.detection_path) {
-                let originalImage = item.detection_path.replace('/ftp-dir/', '')
-                const orgImage = `${FS_API}/${originalImage}`;
-                await axios.delete(orgImage)
-            }
+
+        let images = deletedData.map(eval => {
+            let originalImage = eval.detection_path.replace('/ftp-dir/', '')
+            const orgImage = `${FS_API}/${originalImage}`;
+            return orgImage
+        }).filter((item, pos, self) => {
+            return self.indexOf(item) == pos;
         })
-        return next();
+
+        let imagePromises = images.map(img => axios.delete(img))
+        await Promise.all(imagePromises)
+
+        // deletedData.forEach(async (item) => {
+        //     if (item.detection_path) {
+        //         let originalImage = item.detection_path.replace('/ftp-dir/', '')
+        //         const orgImage = `${FS_API}/${originalImage}`;
+        //         console.log(`checking image for eval`, orgImage)
+        //         const doesExist = await axios.get(orgImage).catch(err => {
+        //             console.log('error from checking image ', err)
+        //             return false
+        //         })
+        //         if (doesExist.data) { await axios.delete(orgImage) }
+        //     }
+        // })
+
     } catch (error) {
-        console.log(`Clean Up Error: delete eval image`, err)
-        return next(error);
+        console.log(`Clean Up Error: delete eval image`, error)
+        return next();
     }
+    return next();
 });
 
 /**

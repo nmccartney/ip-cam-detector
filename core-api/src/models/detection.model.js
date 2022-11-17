@@ -78,16 +78,32 @@ detectionSchema.pre('remove', async function (next) {
         console.log(`Clean Up Error: delete evaluations ${detection.id}`, err)
     }
 
-    if (detection.path) {
-        let originalImage = detection.path.replace('/ftp-dir/', '')
-        originalImage = `${FS_API}${originalImage}`
-        try {
-            await axios.delete(originalImage)
-        } catch (err) {
-            console.log(`Clean Up Error: delete detection image ${originalImage}`, err.data)
-            // return next(err);
-        }
-    }
+    // if (detection.path) {
+    //     let originalImage = detection.path.replace('/ftp-dir/', '')
+    //     originalImage = `${FS_API}${originalImage}`
+
+    //     // first check if file exists
+    //     console.log(`checking if file exists`, originalImage)
+    //     try {
+    //         let doesExist = await axios.get(originalImage).catch(err => {
+    //             console.log('error from checking image ', err)
+    //             return false
+    //         })
+    //         doesExist = doesExist ? true : false
+    //         console.log(`---exists`, doesExist)
+    //     } catch (err) {
+    //         console.log(`1Clean Up Error: delete detection image ${originalImage}`, err.data)
+    //         // return next(err);
+    //         next()
+    //     }
+    //     // try deleteing
+    //     try {
+    //         await axios.delete(originalImage)
+    //     } catch (err) {
+    //         console.log(`2Clean Up Error: delete detection image ${originalImage}`, err.data)
+    //         // return next(err);
+    //     }
+    // }
     next();
 });
 
