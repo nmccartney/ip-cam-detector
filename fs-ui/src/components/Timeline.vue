@@ -74,7 +74,7 @@ export default {
         tags: ['person'],
         detections: [],
         // pageModel: 0,
-        autoRefresh: false,
+        autoRefresh: true,
         page: 0,
         length: 0,
         detectionLimit: 10,

@@ -6,116 +6,96 @@
 
         <div class="timeline-panel">
             <div class="timeline-heading">
-                <h4 class="timeline-title">{{ item.path }}</h4>
+                <h2 class="timeline-title">{{ timeSinceDetection }} </h2>
+                <small class="text-muted">
+                    <!-- {{ item.createdAt }} -->
+                    {{ item.path }}
+                    <!-- {{ timeSinceDetection }} -->
+                    <!-- 24. Sep 17:03 -->
+                </small>
+                <br>
+                <v-chip small v-for="(key, i) in item.objectTags" :key="i" class="ma-1" color="secondary">
+                    {{ key }}
+                </v-chip>
             </div>
             <div class="timeline-body" v-if="item.evaluations">
                 <!-- {{ item.body }} -->
                 <v-row>
-                    <v-col :cols="3">
+                    <v-col :cols="6">
                         <div class="timeline-panel-controls">
                             <div class="timestamp">
-                                <small class="text-muted">
-                                    <!-- {{ item.createdAt }} -->
 
-                                    {{ timeSinceDetection }}
-                                    <!-- 24. Sep 17:03 -->
-                                </small>
-                                <br>
-                                <small class="text-muted">
-                                    Evaluations: {{ item.evaluations.length }}
-                                    <ul>
-                                        <li v-for="(ev, id) in item.evaluations" :key="id">">{{ ev.createdAt }}</li>
-                                    </ul>
-                                </small>
                             </div>
                             <div class="controls">
                                 <TimelineControls :item="item" v-for="(control, id) in controls" :control="control"
                                     :key="id" />
                             </div>
                         </div>
-
-                        <v-divider></v-divider>
-
-                        <!-- <div v-for="(ev, id) in item.evaluations" :key="id">
-                            <div>
-                                <v-chip small v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1" color="secondary">
-                                    {{ key }}
-                                </v-chip>
-                            </div>
-                        </div> -->
-
-                        <v-divider />
-                        <div>
-                            <v-chip small v-for="(key, i) in item.objectTags" :key="i" class="ma-1" color="secondary">
-                                {{ key }}
-                            </v-chip>
-                        </div>
+                    </v-col>
+                    <v-col :cols="6">
                     </v-col>
 
-                    <v-col :cols="9">
+                    <v-col :cols="12">
 
-                        <div v-for="(ev, id) in item.evaluations" :key="id">
+                        <v-dialog v-model="dialog" width="860">
+                            <template v-slot:activator="{ on, attrs }">
+                                <!-- <v-img v-if="ev.status == 'complete'" @click="dialog = true"
+                                    :src="'http://10.0.0.199:3000/' + ev.detection_path" /> -->
+                                <v-img :src="'http://10.0.0.199:3000/' + item.path" @click="dialog = true" />
+                            </template>
 
-                            <!-- <v-img v-if="ev.status == 'complete'"
-                                :src="'http://10.0.0.199:3000/' + ev.detection_path" /> -->
-
-                            <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-img v-if="ev.status == 'complete'" @click="dialog = true"
-                                        :src="'http://10.0.0.199:3000/' + ev.detection_path" />
-                                </template>
-
-                                <v-card>
-                                    <v-toolbar dark color="primary">
-                                        <v-btn icon dark @click="dialog = false">
-                                            <v-icon>mdi-close</v-icon>
+                            <v-card>
+                                <v-toolbar dark color="primary">
+                                    <v-btn icon dark @click="dialog = false">
+                                        <v-icon>mdi-close</v-icon>
+                                    </v-btn>
+                                    <v-toolbar-title>{{ item.path }}</v-toolbar-title>
+                                    <v-spacer></v-spacer>
+                                    <v-toolbar-items>
+                                        <v-btn icon @click="runJob('object')">
+                                            <v-icon>mdi-play</v-icon>
                                         </v-btn>
-                                        <v-toolbar-title>{{ item.path }}</v-toolbar-title>
-                                        <v-spacer></v-spacer>
-                                        <v-toolbar-items>
-                                            <v-btn @click="runJob('object')">
-                                                <v-icon>mdi-play</v-icon>
-                                                Object Job
-                                            </v-btn>
-                                            <v-btn @click="runJob('prediction')">
-                                                <v-icon>mdi-play</v-icon>
-                                                Classify Job
-                                            </v-btn>
-                                            <v-btn icon>
-                                                <v-icon>mdi-dots-vertical</v-icon>
-                                            </v-btn>
-                                        </v-toolbar-items>
-                                    </v-toolbar>
-                                    <v-card-text v-if="dialog">
-                                        <v-row>
-                                            <v-col>
+                                        <v-btn icon @click="runJob('prediction')">
+                                            <v-icon>mdi-brain</v-icon>
+                                        </v-btn>
+                                        <v-btn icon>
+                                            <v-icon>mdi-dots-vertical</v-icon>
+                                        </v-btn>
+                                    </v-toolbar-items>
+                                </v-toolbar>
+                                <v-card-text v-if="dialog">
+                                    <v-row>
+                                        <v-col style="max-width:900px; margin: 0 auto;">
+                                            <v-chip v-for="(tag, key, i) in item.evaluations[currentEval].tags" :key="i"
+                                                class="ma-1" color="secondary">
+                                                {{ key }}
+                                            </v-chip>
+                                            <v-carousel v-model="currentEval">
+                                                <v-carousel-item v-for="(ev, id) in item.evaluations" :key="id">
+                                                    <v-sheet height="100%" tile>
+                                                        <v-row class="fill-height" align="center" justify="center">
+                                                            <v-img v-if="ev.status == 'complete'"
+                                                                :src="'http://10.0.0.199:3000/' + ev.detection_path" />
+                                                        </v-row>
+                                                    </v-sheet>
+                                                </v-carousel-item>
+                                            </v-carousel>
 
-                                                <div v-for="(ev, id) in item.evaluations" :key="id">
-                                                    <div>
-                                                        <v-chip v-for="(tag, key, i) in ev.tags" :key="i" class="ma-1"
-                                                            color="secondary">
-                                                            {{ key }}
-                                                            <!-- {{ tag }} -->
-                                                        </v-chip>
-                                                    </div>
-                                                    <v-img v-if="ev.status == 'complete'"
-                                                        :src="'http://10.0.0.199:3000/' + ev.detection_path" />
-                                                </div>
-                                            </v-col>
-                                            <v-col
-                                                v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
-                                                <v-img :src="'http://10.0.0.199:3000/' + item.path" />
-                                            </v-col>
-                                        </v-row>
+                                        </v-col>
+                                        <v-col
+                                            v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
+                                            <v-img :src="'http://10.0.0.199:3000/' + item.path" />
+                                        </v-col>
+                                    </v-row>
 
-                                    </v-card-text>
-                                </v-card>
-                            </v-dialog>
-                        </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-dialog>
+                        <!-- <div v-for="(ev, id) in item.evaluations" :key="id"></div> -->
                     </v-col>
-                    <v-col v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
+                    <!-- <v-col v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
                         <v-img :src="'http://10.0.0.199:3000/' + item.path" />
-                    </v-col>
+                    </v-col> -->
                 </v-row>
             </div>
         </div>
@@ -139,6 +119,7 @@ export default {
         onDelete: { type: Function, default: () => { } }
     },
     data: () => ({
+        currentEval: 0,
         dialog: false,
         controls: [
             // {

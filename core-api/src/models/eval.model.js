@@ -71,9 +71,11 @@ const FS_API = `http://10.0.0.199:3000`
 evalSchema.pre('remove', async function (next) {
     const eval = this;
     if (eval.detection_path) {
-        let originalImage = eval.detection_path.replace('/ftp-dir/', '')
-        const orgImage = `${FS_API}${originalImage}`;
+
         try {
+            let originalImage = eval.detection_path.replace('/ftp-dir/', '')
+            const orgImage = `${FS_API}${originalImage}`;
+            console.log(`testing bug - `, orgImage)
             await axios.delete(orgImage)
         } catch (err) {
             console.log(`Clean Up Error: delete eval image`, err)
@@ -88,8 +90,10 @@ evalSchema.pre('deleteMany', async function (next) {
         let deletedData = await Eval.find(this._conditions).lean()
 
         let images = deletedData.map(eval => {
+            if (!eval.detection_path) return
             let originalImage = eval.detection_path.replace('/ftp-dir/', '')
             const orgImage = `${FS_API}/${originalImage}`;
+            console.log(`testing bug - `, orgImage)
             return orgImage
         }).filter((item, pos, self) => {
             return self.indexOf(item) == pos;
