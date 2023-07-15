@@ -66,7 +66,7 @@ evalSchema.plugin(paginate);
 // };
 
 
-const FS_API = `http://10.0.0.199:3000`
+const FS_API = `http://10.0.0.106:3000`
 
 evalSchema.pre('remove', async function (next) {
     const eval = this;

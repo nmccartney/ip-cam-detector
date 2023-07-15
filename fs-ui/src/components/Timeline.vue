@@ -105,7 +105,7 @@ export default {
         // this.loading = true;
         // await pause(400)
 
-        // fetch(`http://10.0.0.199:3030/v1/detection?${this.tagQuery}`)
+        // fetch(`http://10.0.0.106:3030/v1/detection?${this.tagQuery}`)
         //     .then(res => res.json())
         //     .then(res => {
         //         this.loading = false;
@@ -123,7 +123,7 @@ export default {
         //     })
 
         // try {
-        //     const response = await axios.get(`http://10.0.0.199:3030/v1/detection`);
+        //     const response = await axios.get(`http://10.0.0.106:3030/v1/detection`);
         //     // eslint-disable-next-line
         //     console.log('detection get:', response.data);
         // } catch (error) {
@@ -171,7 +171,7 @@ export default {
         },
         async getNewPageList(val) {
             let page = val || 0
-            await fetch(`http://10.0.0.199:3030/v1/detection?page=${page}${this.tagQuery}`)
+            await fetch(`http://10.0.0.106:3030/v1/detection?page=${page}${this.tagQuery}`)
                 .then(res => res.json())
                 .then(res => {
                     this.loading = false;

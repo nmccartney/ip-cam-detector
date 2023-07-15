@@ -53,11 +53,11 @@
                                             </v-chip>
                                         </div>
                                         <v-img v-if="ev.status == 'complete'"
-                                            :src="'http://10.0.0.199:3000/' + ev.detection_path" />
+                                            :src="'http://10.0.0.106:3000/' + ev.detection_path" />
                                     </div>
                                 </v-col>
                                 <v-col v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
-                                    <v-img :src="'http://10.0.0.199:3000/' + item.path" />
+                                    <v-img :src="'http://10.0.0.106:3000/' + item.path" />
                                 </v-col>
                             </v-row>
 
@@ -149,7 +149,7 @@ export default {
     async created() {
         // this.loading = true;
         // await pause(400)
-        fetch(`http://10.0.0.199:3030/v1/detection`)
+        fetch(`http://10.0.0.106:3030/v1/detection`)
             .then(res => res.json())
             .then(res => {
                 this.loading = false;
@@ -162,7 +162,7 @@ export default {
             })
             .catch(err => { throw err })
 
-        // fetch(`http://10.0.0.199:3030/v1/eval`)
+        // fetch(`http://10.0.0.106:3030/v1/eval`)
         //     .then(res => res.json())
         //     .then(res => {
         //         this.loading = false;
@@ -197,7 +197,7 @@ export default {
         },
         async getNewPageList(val) {
             let page = val || 0
-            await fetch(`http://10.0.0.199:3030/v1/detection?page=${page}`)
+            await fetch(`http://10.0.0.106:3030/v1/detection?page=${page}`)
                 .then(res => res.json())
                 .then(res => {
                     this.loading = false;
@@ -211,7 +211,7 @@ export default {
                 .catch(err => { throw err })
         },
         async getNewEvalPageList(val) {
-            await fetch(`http://10.0.0.199:3030/v1/eval?page=${val}`)
+            await fetch(`http://10.0.0.106:3030/v1/eval?page=${val}`)
                 .then(res => res.json())
                 .then(res => {
                     this.loading = false;

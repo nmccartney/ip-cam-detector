@@ -67,7 +67,7 @@ detectionSchema.statics.isPathTaken = async function (path, excludeUserId) {
     return !!detection;
 };
 
-const FS_API = `http://10.0.0.199:3000`
+const FS_API = `http://10.0.0.106:3000`
 
 detectionSchema.pre('remove', async function (next) {
     const detection = this;

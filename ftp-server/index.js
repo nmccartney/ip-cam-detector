@@ -77,7 +77,7 @@ const uploadHandler = (error, filePath) => {
 const storeImage = async (fileName, path) => {
     console.log(`requestiong evaluation of: ${path}`)
     let postObj = { fileName, path }
-    const url = `http://10.0.0.199:3030/v1/detection/`;
+    const url = `http://10.0.0.106:3030/v1/detection/`;
     try {
         const response = await axios.post(url, postObj);
         console.log('Added detection to core', response.data.id);
@@ -97,16 +97,16 @@ const cleanup = (dir) => {
             console.log(`root: ${rootLocal} -- Size: ${formatBytes(rsize)}`);
 
             const size = await dirSize(directoryPath);
-            const GB = Math.pow(1024,3)
-            const limit = GB*10  // 1GB
+            const GB = Math.pow(1024, 3)
+            const limit = GB * 10  // 1GB
             console.log(`Dir: ${directoryPath} -- Size: ${formatBytes(size)}/${formatBytes(limit)}`);
-            
+
             if (size > limit) {
                 //clean up files
                 console.log(`Hit Size Limit. Directory (${directoryPath}) Size: ${formatBytes(size)}`)
                 // await removeLastAdded(directoryPath)
 
-                const url = `http://10.0.0.199:3030/v1/detection/cleanup`;
+                const url = `http://10.0.0.106:3030/v1/detection/cleanup`;
                 try {
                     const response = await axios.post(url);
                     console.log('cleanup detection to core', response.status);
@@ -144,7 +144,7 @@ const removeLastAdded = async (dir) => {
 
     fs.unlink(fileToRemove, (err) => {
         if (err) {
-            console.error(err)
+            console.error('file to remove error: ', err)
             return
         }
         console.log(`Removed: ${fileToRemove} because of directory limit`)

@@ -40,8 +40,8 @@
                         <v-dialog v-model="dialog" width="860">
                             <template v-slot:activator="{ on, attrs }">
                                 <!-- <v-img v-if="ev.status == 'complete'" @click="dialog = true"
-                                    :src="'http://10.0.0.199:3000/' + ev.detection_path" /> -->
-                                <v-img :src="'http://10.0.0.199:3000/' + item.path" @click="dialog = true" />
+                                    :src="'http://10.0.0.106:3000/' + ev.detection_path" /> -->
+                                <v-img :src="'http://10.0.0.106:3000/' + item.path" @click="dialog = true" />
                             </template>
 
                             <v-card>
@@ -75,7 +75,7 @@
                                                     <v-sheet height="100%" tile>
                                                         <v-row class="fill-height" align="center" justify="center">
                                                             <v-img v-if="ev.status == 'complete'"
-                                                                :src="'http://10.0.0.199:3000/' + ev.detection_path" />
+                                                                :src="'http://10.0.0.106:3000/' + ev.detection_path" />
                                                         </v-row>
                                                     </v-sheet>
                                                 </v-carousel-item>
@@ -84,7 +84,7 @@
                                         </v-col>
                                         <v-col
                                             v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
-                                            <v-img :src="'http://10.0.0.199:3000/' + item.path" />
+                                            <v-img :src="'http://10.0.0.106:3000/' + item.path" />
                                         </v-col>
                                     </v-row>
 
@@ -94,7 +94,7 @@
                         <!-- <div v-for="(ev, id) in item.evaluations" :key="id"></div> -->
                     </v-col>
                     <!-- <v-col v-if="item.evaluations.filter(ev => ev.status !== 'complete').length !== 0">
-                        <v-img :src="'http://10.0.0.199:3000/' + item.path" />
+                        <v-img :src="'http://10.0.0.106:3000/' + item.path" />
                     </v-col> -->
                 </v-row>
             </div>
@@ -135,7 +135,7 @@ export default {
                     console.log(`delete ${id}`);
 
                     try {
-                        const response = await axios.delete(`http://10.0.0.199:3030/v1/detection/${id}`);
+                        const response = await axios.delete(`http://10.0.0.106:3030/v1/detection/${id}`);
                         // eslint-disable-next-line
                         console.log('Deleted detection to core', response.data);
                     } catch (error) {
@@ -162,7 +162,7 @@ export default {
             console.log(`run ${type} job ${this.item.id}`);
 
             try {
-                const response = await axios.post(`http://10.0.0.199:3030/v1/eval/${type}`, { detectionId: this.item.id });
+                const response = await axios.post(`http://10.0.0.106:3030/v1/eval/${type}`, { detectionId: this.item.id });
                 // eslint-disable-next-line
                 console.log('Run job for detection to core', response.data);
             } catch (error) {

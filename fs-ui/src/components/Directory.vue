@@ -103,7 +103,7 @@ export default {
         async getCurr() {
             this.loading = true;
             await pause(400)
-            fetch(`http://10.0.0.199:3000/${this.path}`)
+            fetch(`http://10.0.0.106:3000/${this.path}`)
                 .then(res => res.json())
                 .then(res => {
                     this.loading = false;
@@ -122,7 +122,7 @@ export default {
             // eslint-disable-next-line
             console.log(`item `, item)
 
-            return fetch(`http://10.0.0.199:3000/${item.path}`)
+            return fetch(`http://10.0.0.106:3000/${item.path}`)
                 .then(res => res.json())
                 .then(json => {
                     // eslint-disable-next-line

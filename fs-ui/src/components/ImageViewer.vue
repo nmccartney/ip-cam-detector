@@ -68,7 +68,7 @@ export default {
             return label
         },
         imgSrc() {
-            return "http://10.0.0.199:3000/" + this.path
+            return "http://10.0.0.106:3000/" + this.path
         }
     },
     created() {
@@ -77,7 +77,7 @@ export default {
         runJob() {
             // eslint-disable-next-line
             console.log('path: ', this.path)
-            fetch(`http://10.0.0.199:5000/run?image=ftp-dir/${this.path}`)
+            fetch(`http://10.0.0.106:5000/run?image=ftp-dir/${this.path}`)
                 .then(res => res.json())
                 .then(res => {
                     this.loading = false;

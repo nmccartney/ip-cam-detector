@@ -18,8 +18,8 @@ function bufferToStream(buffer) {
     return duplexStream;
 }
 
-const EVAL_API = `http://10.0.0.199:5000/`
-const FS_API = `http://10.0.0.199:3000`
+const EVAL_API = `http://10.0.0.106:5000/`
+const FS_API = `http://10.0.0.106:3000`
 
 /**
  * Create a file

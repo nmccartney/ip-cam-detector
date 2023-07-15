@@ -51,7 +51,7 @@ class ObjectDetectionThread(threading.Thread):
             print(e)
             print("--------------------------------")
 
-            url = 'http://10.0.0.199:3030/v1/eval/'+self.evalId
+            url = 'http://10.0.0.106:3030/v1/eval/'+self.evalId
             x = requests.patch(url, json = {"status":"failed"}, verify=False, timeout=3)
             return 
 
@@ -68,7 +68,7 @@ class ObjectDetectionThread(threading.Thread):
 
             json_object = json.dumps(postDict) 
             # print(json_object,4)
-            url = 'http://10.0.0.199:3030/v1/eval/'+self.evalId
+            url = 'http://10.0.0.106:3030/v1/eval/'+self.evalId
             x = requests.patch(url, json = postDict, verify=False, timeout=3)
             # print('Core api resp: ',x.text)
             # print("------------------------------------")
