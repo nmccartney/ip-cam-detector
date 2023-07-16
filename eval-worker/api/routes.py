@@ -31,16 +31,18 @@ execution_path = os.getcwd()
 prediction = ImageClassification()
 prediction.setModelTypeAsResNet50()
 # prediction.setModelPath(os.path.join(execution_path, "inception_v3_weights_tf_dim_ordering_tf_kernels.h5"))
-prediction.setModelPath(os.path.join(execution_path, "models/resnet50_imagenet_tf.2.0.h5"))
+# prediction.setModelPath(os.path.join(execution_path, "models/resnet50_imagenet_tf.2.0.h5"))
+prediction.setModelPath(os.path.join(execution_path, "models/resnet50-19c8e357.pth"))
+
 prediction.loadModel()
 
 
 detector = ObjectDetection()
-# detector.setModelTypeAsYOLOv3()
-# detector.setModelPath( os.path.join(execution_path , "models/yolo.h5"))
-detector.setModelTypeAsRetinaNet()
+detector.setModelTypeAsYOLOv3()
+detector.setModelPath( os.path.join(execution_path , "models/yolov3.pt"))
+# detector.setModelTypeAsRetinaNet()
 # print(dir(detector))
-detector.setModelPath( os.path.join(execution_path , "models/resnet50_coco_best_v2.1.0.h5"))
+# detector.setModelPath( os.path.join(execution_path , "models/resnet50_coco_best_v2.1.0.h5"))
 detector.loadModel()
 
 """

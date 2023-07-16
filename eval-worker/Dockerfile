@@ -1,4 +1,4 @@
-FROM python:3.7-slim as builder
+FROM python:3.8-slim as builder
 
 WORKDIR /flask-api
 
@@ -6,6 +6,7 @@ WORKDIR /flask-api
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN apt-get update && apt-get install tk-dev -y && rm -r /var/lib/apt/lists/*
 # RUN apt-get install ffmpeg libsm6 libxext6  -y
 RUN apt-get update && apt-get install libgl1 libglib2.0-0 -y
 

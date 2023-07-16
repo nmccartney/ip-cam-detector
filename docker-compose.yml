@@ -3,90 +3,90 @@ version: '3'
 volumes:
   dbdata:
   ftp-dir:
-#    driver: local
-#    driver_opts:
-#      type: none
-#      device: /media/nmccartney/ruxton
-#      o: bind
+    #    driver: local
+    #    driver_opts:
+    #      type: none
+    #      device: /media/nmccartney/ruxton
+    #      o: bind
 
 networks:
   node-network:
     driver: bridge
 
 services:
-  # core-api:
-  #   build: ./core-api
-  #   environment:
-  #     - NODE_ENV=development
-  #     - MONGODB_URL=mongodb://mongodb:27017/node-boilerplate
-  #   ports:
-  #     - '3030:3030'
-  #   depends_on:
-  #     - mongodb
-  #     - eval-worker
-  #     # - fs-ui
-  #   volumes:
-  #     - ftp-dir:/usr/src/node-app/ftp-dir
-  #     - ./core-api:/usr/src/node-app
-  #     - /usr/src/node-app/node_modules
-  #   container_name: core-api-dev
-  #   command: npm run dev # node src/index.js
-  #   networks:
-  #     - node-network
+  core-api:
+    build: ./core-api
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URL=mongodb://mongodb:27017/node-boilerplate
+    ports:
+      - '3030:3030'
+    depends_on:
+      - mongodb
+      - eval-worker
+      # - fs-ui
+    volumes:
+      - ftp-dir:/usr/src/node-app/ftp-dir
+      - ./core-api:/usr/src/node-app
+      - /usr/src/node-app/node_modules
+    container_name: core-api-dev
+    command: npm run dev # node src/index.js
+    networks:
+      - node-network
 
-  # mongodb:
-  #   image: mongo:4.2.1-bionic
-  #   ports:
-  #     - '27017:27017'
-  #   volumes:
-  #     - dbdata:/data/db
-  #   networks:
-  #     - node-network
+  mongodb:
+    image: mongo:4.2.1-bionic
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - node-network
 
-  # ftp-srv:
-  #   build: ./ftp-server
-  #   user: node
-  #   ports:
-  #     - '21:21'
-  #     - "20:20"
-  #   depends_on:
-  #     - core-api
-  #     - eval-worker
-  #   volumes:
-  #     - /usr/src/node-app/node_modules
-  #     - ftp-dir:/usr/src/node-app/ftp-dir
-  #     - ./ftp-server:/usr/src/node-app
-  #   container_name: ftp-server
-  #   command: node index.js
+  ftp-srv:
+    build: ./ftp-server
+    user: node
+    ports:
+      - '21:21'
+      - "20:20"
+    depends_on:
+      - core-api
+      - eval-worker
+    volumes:
+      - /usr/src/node-app/node_modules
+      - ftp-dir:/usr/src/node-app/ftp-dir
+      - ./ftp-server:/usr/src/node-app
+    container_name: ftp-server
+    command: node index.js
 
-  # fs-api:
-  #   build: ./fs-api
-  #   depends_on:
-  #     - ftp-srv
-  #   ports:
-  #     - '3000:3000'
-  #   volumes:
-  #     - /usr/src/node-app/node_modules
-  #     - ftp-dir:/usr/src/node-app/ftp-dir
-  #     - ./fs-api:/usr/src/node-app
-  #   container_name: fs-api-dev
-  #   command: node src/index.js
+  fs-api:
+    build: ./fs-api
+    depends_on:
+      - ftp-srv
+    ports:
+      - '3000:3000'
+    volumes:
+      - /usr/src/node-app/node_modules
+      - ftp-dir:/usr/src/node-app/ftp-dir
+      - ./fs-api:/usr/src/node-app
+    container_name: fs-api-dev
+    command: node src/index.js
 
-  # fs-ui:
-  #   build: ./fs-ui
-  #   stdin_open: true
-  #   tty: true
-  #   depends_on:
-  #     - core-api
-  #     - fs-api
-  #   ports:
-  #     - '8080:8080'
-  #   volumes:
-  #     - /usr/src/node-app/node_modules
-  #     - ftp-dir:/usr/src/node-app/ftp-dir
-  #     - ./fs-ui:/usr/src/node-app
-  #   container_name: fs-ui-dev
-  #   command: npm run serve
+  fs-ui:
+    build: ./fs-ui
+    stdin_open: true
+    tty: true
+    depends_on:
+      - core-api
+      - fs-api
+    ports:
+      - '8080:8080'
+    volumes:
+      - /usr/src/node-app/node_modules
+      - ftp-dir:/usr/src/node-app/ftp-dir
+      - ./fs-ui:/usr/src/node-app
+    container_name: fs-ui-dev
+    command: npm run serve
 
   eval-worker:
     container_name: eval-worker
@@ -98,6 +98,7 @@ services:
     volumes:
       - ftp-dir:/flask-api/ftp-dir
       - ./eval-worker:/flask-api
+
 # networks:
 #   - db_network
 # - web_network
